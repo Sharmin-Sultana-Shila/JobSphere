@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Company Setup — JobSphere{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 560px;">
+    <h2>Set Up Your Company</h2>
+    <p class="subtitle">Tell us about your company and role</p>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Company Name -->
+        <div class="form-group">
+            <label for="id_company_name">Company Name</label>
+            {{ form.company_name }}
+        </div>
+
+        <!-- Company Logo -->
+        <div class="form-group">
+            <label for="id_company_logo">Company Logo (optional)</label>
+            {{ form.company_logo }}
+        </div>
+
+        <!-- Company Location -->
+        <div class="form-group">
+            <label for="id_company_location">Company Location</label>
+            {{ form.company_location }}
+        </div>
+
+        <!-- Designation -->
+        <div class="form-group">
+            <label for="id_designation">Your Designation</label>
+            {{ form.designation }}
+        </div>
+
+        <!-- Department -->
+        <div class="form-group">
+            <label for="id_dept">Department</label>
+            {{ form.dept }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save & Continue</button>
+    </form>
+</div>
+{% endblock %}
