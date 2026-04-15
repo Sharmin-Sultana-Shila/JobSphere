@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Register — JobSphere{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Create Account</h2>
+    <p class="subtitle">Join JobSphere to find your next opportunity</p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <!-- Role Selection -->
+        <div class="form-group">
+            <label>I am a:</label>
+            <div class="role-selection">
+                <div class="role-option">
+                    <input type="radio" name="user_type" id="role-seeker" value="seeker" checked>
+                    <label for="role-seeker">
+                        <span class="role-icon">&#128188;</span>
+                        Job Seeker
+                    </label>
+                </div>
+                <div class="role-option">
+                    <input type="radio" name="user_type" id="role-recruiter" value="recruiter">
+                    <label for="role-recruiter">
+                        <span class="role-icon">&#127970;</span>
+                        Recruiter
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Name -->
+        <div class="form-group">
+            <label for="id_name">Full Name</label>
+            {{ form.name }}
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            <label for="id_email">Email Address</label>
+            {{ form.email }}
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+            <label for="id_password">Password</label>
+            {{ form.password }}
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+            <label for="id_confirm_password">Confirm Password</label>
+            {{ form.confirm_password }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Account</button>
+    </form>
+
+    <p class="auth-link">Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+</div>
+{% endblock %}

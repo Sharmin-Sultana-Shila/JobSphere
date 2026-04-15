@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Login — JobSphere{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Login to your JobSphere account</p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <!-- Email -->
+        <div class="form-group">
+            <label for="id_email">Email Address</label>
+            {{ form.email }}
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+            <label for="id_password">Password</label>
+            {{ form.password }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+
+    <p class="auth-link">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+</div>
+{% endblock %}
