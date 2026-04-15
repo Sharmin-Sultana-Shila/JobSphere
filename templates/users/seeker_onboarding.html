@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Your Profile — JobSphere{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 560px;">
+    <h2>Complete Your Profile</h2>
+    <p class="subtitle">Tell recruiters about yourself</p>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Bio -->
+        <div class="form-group">
+            <label for="id_bio">Bio</label>
+            {{ form.bio }}
+        </div>
+
+        <!-- CGPA -->
+        <div class="form-group">
+            <label for="id_cgpa">CGPA (out of 4.00)</label>
+            {{ form.cgpa }}
+        </div>
+
+        <!-- Experience -->
+        <div class="form-group">
+            <label for="id_experience_years">Years of Experience</label>
+            {{ form.experience_years }}
+        </div>
+
+        <!-- Education -->
+        <div class="form-group">
+            <label for="id_education">Education</label>
+            {{ form.education }}
+        </div>
+
+        <!-- Skills -->
+        <div class="form-group">
+            <label for="id_skills_text">Skills (comma separated)</label>
+            {{ form.skills_text }}
+        </div>
+
+        <!-- Location -->
+        <div class="form-group">
+            <label for="id_location">Location</label>
+            {{ form.location }}
+        </div>
+
+        <!-- Career Goals -->
+        <div class="form-group">
+            <label for="id_career_goals">Career Goals</label>
+            {{ form.career_goals }}
+        </div>
+
+        <!-- Resume -->
+        <div class="form-group">
+            <label for="id_resume">Upload Resume (PDF)</label>
+            {{ form.resume }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save & Continue</button>
+    </form>
+</div>
+{% endblock %}
