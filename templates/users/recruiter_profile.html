@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile — JobSphere{% endblock %}
+
+{% block extra_css %}
+.profile-container {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 12px;
+    padding: 35px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid #eee;
+}
+
+.profile-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e94560;
+}
+
+.profile-avatar-placeholder {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: #1a1a2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.profile-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.profile-email {
+    color: #888;
+    font-size: 14px;
+    margin-top: 2px;
+}
+
+.profile-role-badge {
+    display: inline-block;
+    background: #16213e;
+    color: white;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.profile-section {
+    margin-bottom: 20px;
+}
+
+.profile-section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #999;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.profile-section-value {
+    font-size: 15px;
+    color: #333;
+    line-height: 1.6;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.company-banner {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.company-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+.company-logo-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    background: #e94560;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.company-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.company-location {
+    font-size: 13px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.profile-actions {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid #eee;
+}
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-card">
+
+        <!-- Header: Avatar + Name -->
+        <div class="profile-header">
+            {% if user.profile_pic %}
+                <img src="{{ user.profile_pic.url }}" alt="Profile" class="profile-avatar">
+            {% else %}
+                <div class="profile-avatar-placeholder">{{ user.name|first }}</div>
+            {% endif %}
+            <div>
+                <div class="profile-name">{{ user.name }}</div>
+                <div class="profile-email">{{ user.email }}</div>
+                {% if user.phone_num %}
+                    <div class="profile-email">{{ user.phone_num }}</div>
+                {% endif %}
+                <span class="profile-role-badge">Recruiter</span>
+            </div>
+        </div>
+
+        <!-- Company Info -->
+        {% if recruiter.company %}
+        <div class="company-banner">
+            {% if recruiter.company.logo %}
+                <img src="{{ recruiter.company.logo.url }}" alt="Logo" class="company-logo">
+            {% else %}
+                <div class="company-logo-placeholder">{{ recruiter.company.name|first }}</div>
+            {% endif %}
+            <div>
+                <div class="company-name">{{ recruiter.company.name }}</div>
+                {% if recruiter.company.location %}
+                    <div class="company-location">{{ recruiter.company.location }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Grid: Designation, Department -->
+        <div class="profile-grid">
+            <div class="profile-section">
+                <div class="profile-section-title">Designation</div>
+                <div class="profile-section-value">{{ recruiter.designation|default:"Not set" }}</div>
+            </div>
+            <div class="profile-section">
+                <div class="profile-section-title">Department</div>
+                <div class="profile-section-value">{{ recruiter.dept|default:"Not set" }}</div>
+            </div>
+        </div>
+
+        <!-- Edit Button -->
+        <div class="profile-actions">
+            <a href="{% url 'recruiter_profile_edit' %}" class="btn btn-primary" style="width: auto; background: #16213e;">Edit Profile</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
