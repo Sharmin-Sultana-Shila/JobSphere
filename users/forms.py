@@ -118,3 +118,101 @@ class RecruiterOnboardingForm(forms.Form):
         'class': 'form-input',
         'placeholder': 'Department (e.g. Human Resources)'
     }))
+
+class UserProfilePicForm(forms.ModelForm):
+    """
+    Lets any user update their profile picture and phone number.
+    """
+    class Meta:
+        model = User
+        fields = ['profile_pic', 'phone_num']
+        widgets = {
+            'profile_pic': forms.FileInput(attrs={
+                'class': 'form-input'
+            }),
+            'phone_num': forms.TextInput(attrs={
+                'class': 'form-input',
+                'placeholder': 'e.g. +880 1712 345678'
+            }),
+        }
+
+
+class SeekerProfileEditForm(forms.ModelForm):
+    """
+    Lets seeker edit their profile info after onboarding.
+    Same fields as onboarding but used for editing.
+    """
+    class Meta:
+        model = JobSeeker
+        fields = ['bio', 'cgpa', 'experience_years', 'education', 'career_goals',
+                  'resume', 'location', 'skills_text']
+        widgets = {
+            'bio': forms.Textarea(attrs={
+                'class': 'form-input',
+                'rows': 3
+            }),
+            'cgpa': forms.NumberInput(attrs={
+                'class': 'form-input',
+                'step': '0.01',
+                'min': '0',
+                'max': '4'
+            }),
+            'experience_years': forms.NumberInput(attrs={
+                'class': 'form-input',
+                'min': '0'
+            }),
+            'education': forms.TextInput(attrs={
+                'class': 'form-input'
+            }),
+            'career_goals': forms.Textarea(attrs={
+                'class': 'form-input',
+                'rows': 3
+            }),
+            'resume': forms.FileInput(attrs={
+                'class': 'form-input'
+            }),
+            'location': forms.TextInput(attrs={
+                'class': 'form-input'
+            }),
+            'skills_text': forms.Textarea(attrs={
+                'class': 'form-input',
+                'rows': 2
+            }),
+        }
+
+
+class RecruiterProfileEditForm(forms.ModelForm):
+    """
+    Lets recruiter edit their designation and department.
+    """
+    class Meta:
+        model = Recruiter
+        fields = ['designation', 'dept']
+        widgets = {
+            'designation': forms.TextInput(attrs={
+                'class': 'form-input'
+            }),
+            'dept': forms.TextInput(attrs={
+                'class': 'form-input'
+            }),
+        }
+
+
+class CompanyEditForm(forms.ModelForm):
+    """
+    Lets recruiter edit their company info.
+    """
+    class Meta:
+        model = Company
+        fields = ['name', 'logo', 'location']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-input'
+            }),
+            'logo': forms.FileInput(attrs={
+                'class': 'form-input'
+            }),
+            'location': forms.TextInput(attrs={
+                'class': 'form-input'
+            }),
+        }
