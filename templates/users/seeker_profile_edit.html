@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile — JobSphere{% endblock %}
+
+{% block extra_css %}
+.edit-container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.edit-card {
+    background: white;
+    border-radius: 12px;
+    padding: 35px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.edit-card h2 {
+    color: #1a1a2e;
+    margin-bottom: 5px;
+}
+
+.edit-card .subtitle {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+.section-divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 25px 0;
+}
+
+.section-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 15px;
+}
+
+.current-file {
+    font-size: 13px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.btn-row .btn {
+    flex: 1;
+}
+
+.btn-cancel {
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+.btn-cancel:hover {
+    background-color: #e0e2e5;
+}
+{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+    <div class="edit-card">
+        <h2>Edit Your Profile</h2>
+        <p class="subtitle">Update your information below</p>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Profile Picture & Phone -->
+            <div class="section-label">Account Info</div>
+
+            <div class="form-group">
+                <label>Profile Picture</label>
+                {{ user_form.profile_pic }}
+                {% if request.user.profile_pic %}
+                    <div class="current-file">Current: {{ request.user.profile_pic.name }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                {{ user_form.phone_num }}
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- Seeker Info -->
+            <div class="section-label">Profile Details</div>
+
+            <div class="form-group">
+                <label>Bio</label>
+                {{ seeker_form.bio }}
+            </div>
+
+            <div class="form-group">
+                <label>CGPA (out of 4.00)</label>
+                {{ seeker_form.cgpa }}
+            </div>
+
+            <div class="form-group">
+                <label>Years of Experience</label>
+                {{ seeker_form.experience_years }}
+            </div>
+
+            <div class="form-group">
+                <label>Education</label>
+                {{ seeker_form.education }}
+            </div>
+
+            <div class="form-group">
+                <label>Skills (comma separated)</label>
+                {{ seeker_form.skills_text }}
+            </div>
+
+            <div class="form-group">
+                <label>Location</label>
+                {{ seeker_form.location }}
+            </div>
+
+            <div class="form-group">
+                <label>Career Goals</label>
+                {{ seeker_form.career_goals }}
+            </div>
+
+            <div class="form-group">
+                <label>Resume (PDF)</label>
+                {{ seeker_form.resume }}
+                {% if seeker.resume %}
+                    <div class="current-file">Current: {{ seeker.resume.name }}</div>
+                {% endif %}
+            </div>
+
+            <div class="btn-row">
+                <a href="{% url 'seeker_profile' %}" class="btn btn-cancel">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
