@@ -176,14 +176,11 @@
         </div>
 
         <!-- Skills -->
+        
         {% if seeker.skills_text %}
         <div class="profile-section">
             <div class="profile-section-title">Skills</div>
-            <div class="skills-list">
-                {% for skill in seeker.skills_text.split %}
-                    <span class="skill-tag">{{ skill|striptags }}</span>
-                {% endfor %}
-            </div>
+            <div class="profile-section-value">{{ seeker.skills_text }}</div>
         </div>
         {% endif %}
 
