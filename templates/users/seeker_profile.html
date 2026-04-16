@@ -180,7 +180,7 @@
         <div class="profile-section">
             <div class="profile-section-title">Skills</div>
             <div class="skills-list">
-                {% for skill in seeker.skills_text.split:',' %}
+                {% for skill in seeker.skills_text.split %}
                     <span class="skill-tag">{{ skill|striptags }}</span>
                 {% endfor %}
             </div>
