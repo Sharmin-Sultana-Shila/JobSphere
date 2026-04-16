@@ -276,11 +276,12 @@
     <nav class="navbar">
         <a href="/" class="navbar-brand">Job<span>Sphere</span></a>
         <div class="navbar-links">
-            {% if user.is_authenticated %}
-                {% if user.user_type == 'seeker' %}
+            {% if user.user_type == 'seeker' %}
                     <a href="{% url 'seeker_dashboard' %}">Dashboard</a>
+                    <a href="{% url 'seeker_profile' %}">Profile</a>
                 {% elif user.user_type == 'recruiter' %}
                     <a href="{% url 'recruiter_dashboard' %}">Dashboard</a>
+                    <a href="{% url 'recruiter_profile' %}">Profile</a>
                 {% endif %}
                 <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
             {% else %}
