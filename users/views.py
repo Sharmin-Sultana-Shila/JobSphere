@@ -6,12 +6,7 @@ from .models import User, JobSeeker, Recruiter, Company
 
 
 def register_view(request):
-    """
-    Handles user registration.
-    1. Shows the register form
-    2. When submitted, creates the User
-    3. Redirects to the correct onboarding page based on role
-    """
+    
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
