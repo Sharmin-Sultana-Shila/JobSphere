@@ -10,9 +10,11 @@ urlpatterns = [
     path('dashboard/seeker/', views.seeker_dashboard_view, name='seeker_dashboard'),
     path('dashboard/recruiter/', views.recruiter_dashboard_view, name='recruiter_dashboard'),
 
-    # STORY-09: Profile pages (NEW)
+    
     path('profile/seeker/', views.seeker_profile_view, name='seeker_profile'),
     path('profile/seeker/edit/', views.seeker_profile_edit_view, name='seeker_profile_edit'),
     path('profile/recruiter/', views.recruiter_profile_view, name='recruiter_profile'),
     path('profile/recruiter/edit/', views.recruiter_profile_edit_view, name='recruiter_profile_edit'),
 ]
+
+
