@@ -6,7 +6,7 @@ from .models import User, JobSeeker, Recruiter, Company
 
 
 def register_view(request):
-    
+    # this is new comment
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
