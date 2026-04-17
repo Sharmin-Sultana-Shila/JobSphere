@@ -6,7 +6,7 @@ from .models import User, JobSeeker, Recruiter, Company
 
 
 def register_view(request):
-    
+    #  testing this for branch
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
