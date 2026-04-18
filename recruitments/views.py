@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import JobPost, Application
-from .forms import JobPostForm
+from .forms import JobPostForm, SeekerPostForm
 from users.models import Recruiter, JobSeeker
 
 
