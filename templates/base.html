@@ -278,13 +278,16 @@
         <div class="navbar-links">
             {% if user.is_authenticated %}
                 {% if user.user_type == 'seeker' %}
-                     <a href="{% url 'seeker_dashboard' %}">Dashboard</a>
-                     <a href="{% url 'seeker_profile' %}">Profile</a>
-                 {% elif user.user_type == 'recruiter' %}
-                      <a href="{% url 'recruiter_dashboard' %}">Dashboard</a>
-                      <a href="{% url 'recruiter_profile' %}">Profile</a>
-                 {% endif %}
-                      <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+                    <a href="{% url 'seeker_dashboard' %}">Dashboard</a>
+                    <a href="{% url 'job_list' %}">Browse Jobs</a>
+                    <a href="{% url 'seeker_profile' %}">Profile</a>
+                {% elif user.user_type == 'recruiter' %}
+                    <a href="{% url 'recruiter_dashboard' %}">Dashboard</a>
+                    <a href="{% url 'my_job_posts' %}">My Posts</a>
+                    <a href="{% url 'create_job_post' %}">Post Job</a>
+                    <a href="{% url 'recruiter_profile' %}">Profile</a>
+                {% endif %}
+                <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
             {% else %}
                 <a href="{% url 'login' %}">Login</a>
                 <a href="{% url 'register' %}">Register</a>
