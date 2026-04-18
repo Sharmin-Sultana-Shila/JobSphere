@@ -85,13 +85,60 @@ def my_job_posts_view(request):
 def job_list_view(request):
     """
     Seeker sees all active job posts.
-    Shows search bar and filter options (built fully in EPIC-03).
+    Supports search by keyword and filters by location, company, jobType.
     """
     if not request.user.is_authenticated:
         return redirect('login')
 
+    from django.db.models import Q
+    from users.models import Company
+
+    # Start with all active recruiter posts
     job_posts = JobPost.objects.filter(status='active', poster_type='recruiter')
-    return render(request, 'recruitments/job_list.html', {'job_posts': job_posts})
+
+    # Get search and filter values from URL parameters
+    search_query = request.GET.get('q', '').strip()
+    location_filter = request.GET.get('location', '').strip()
+    company_filter = request.GET.get('company', '').strip()
+    job_type_filter = request.GET.get('job_type', '').strip()
+
+    # Apply search — searches in title and description
+    if search_query:
+        job_posts = job_posts.filter(
+            Q(title__icontains=search_query) | Q(description__icontains=search_query)
+        )
+
+    # Apply location filter (case-insensitive partial match)
+    if location_filter:
+        job_posts = job_posts.filter(location__icontains=location_filter)
+
+    # Apply job type filter (exact match)
+    if job_type_filter:
+        job_posts = job_posts.filter(job_type=job_type_filter)
+
+    # Apply company filter — filter by recruiter's company name
+    if company_filter:
+        # Get all users (recruiters) whose company name matches
+        matching_recruiters = Recruiter.objects.filter(
+            company__name__icontains=company_filter
+        ).values_list('user_id', flat=True)
+        job_posts = job_posts.filter(poster_id__in=matching_recruiters)
+
+    # Get list of all companies for the filter dropdown
+    all_companies = Company.objects.all()
+
+    # Job type choices for the dropdown
+    job_type_choices = JobPost.JOB_TYPE_CHOICES
+
+    return render(request, 'recruitments/job_list.html', {
+        'job_posts': job_posts,
+        'search_query': search_query,
+        'location_filter': location_filter,
+        'company_filter': company_filter,
+        'job_type_filter': job_type_filter,
+        'all_companies': all_companies,
+        'job_type_choices': job_type_choices,
+    })
 
 
 def job_detail_view(request, post_id):
