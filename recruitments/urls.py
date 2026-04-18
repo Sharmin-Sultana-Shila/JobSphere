@@ -11,4 +11,10 @@ urlpatterns = [
     # Seeker: browse jobs
     path('jobs/', views.job_list_view, name='job_list'),
     path('jobs/<int:post_id>/', views.job_detail_view, name='job_detail'),
+
+    # STORY-11: Reverse job posting
+    path('seeker-post/create/', views.create_seeker_post_view, name='create_seeker_post'),
+    path('seeker-post/my-posts/', views.my_seeker_posts_view, name='my_seeker_posts'),
+    path('seeker-posts/', views.seeker_posts_browser_view, name='seeker_posts_browser'),
+    path('seeker-posts/<int:post_id>/', views.seeker_post_detail_view, name='seeker_post_detail'),
 ]
