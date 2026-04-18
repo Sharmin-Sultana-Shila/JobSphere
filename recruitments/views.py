@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import JobPost, Application
-from .forms import JobPostForm
+from .forms import JobPostForm, SeekerPostForm
 from users.models import Recruiter, JobSeeker
 
 
@@ -132,43 +132,33 @@ def job_detail_view(request, post_id):
 def create_seeker_post_view(request):
     """
     Seeker creates a reverse job post — showcasing their profile for recruiters.
-    Uses the same JobPost form but sets poster_type to 'seeker'.
+    Uses SeekerPostForm which has fewer fields than recruiter's form.
     """
     if not request.user.is_authenticated or request.user.user_type != 'seeker':
         return redirect('login')
 
     if request.method == 'POST':
-        form = JobPostForm(request.POST)
+        form = SeekerPostForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)
             post.poster = request.user
             post.poster_type = 'seeker'
+            post.number_of_available_seats = 1
             post.save()
             messages.success(request, 'Your post has been published! Recruiters can now find you.')
             return redirect('my_seeker_posts')
     else:
-        # Pre-fill some fields from seeker profile
         try:
             seeker = JobSeeker.objects.get(user=request.user)
-            form = JobPostForm(initial={
+            form = SeekerPostForm(initial={
                 'skills_text': seeker.skills_text,
                 'location': seeker.location,
             })
         except JobSeeker.DoesNotExist:
-            form = JobPostForm()
+            form = SeekerPostForm()
 
     return render(request, 'recruitments/create_seeker_post.html', {'form': form})
 
-
-def my_seeker_posts_view(request):
-    """
-    Seeker sees their own reverse posts.
-    """
-    if not request.user.is_authenticated or request.user.user_type != 'seeker':
-        return redirect('login')
-
-    posts = JobPost.objects.filter(poster=request.user, poster_type='seeker')
-    return render(request, 'recruitments/my_seeker_posts.html', {'posts': posts})
 
 
 def seeker_posts_browser_view(request):
