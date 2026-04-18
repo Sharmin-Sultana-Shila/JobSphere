@@ -127,3 +127,80 @@ def job_detail_view(request, post_id):
         'already_applied': already_applied,
         'company_name': company_name
     })
+
+
+def create_seeker_post_view(request):
+    """
+    Seeker creates a reverse job post — showcasing their profile for recruiters.
+    Uses the same JobPost form but sets poster_type to 'seeker'.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'seeker':
+        return redirect('login')
+
+    if request.method == 'POST':
+        form = JobPostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.poster = request.user
+            post.poster_type = 'seeker'
+            post.save()
+            messages.success(request, 'Your post has been published! Recruiters can now find you.')
+            return redirect('my_seeker_posts')
+    else:
+        # Pre-fill some fields from seeker profile
+        try:
+            seeker = JobSeeker.objects.get(user=request.user)
+            form = JobPostForm(initial={
+                'skills_text': seeker.skills_text,
+                'location': seeker.location,
+            })
+        except JobSeeker.DoesNotExist:
+            form = JobPostForm()
+
+    return render(request, 'recruitments/create_seeker_post.html', {'form': form})
+
+
+def my_seeker_posts_view(request):
+    """
+    Seeker sees their own reverse posts.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'seeker':
+        return redirect('login')
+
+    posts = JobPost.objects.filter(poster=request.user, poster_type='seeker')
+    return render(request, 'recruitments/my_seeker_posts.html', {'posts': posts})
+
+
+def seeker_posts_browser_view(request):
+    """
+    Recruiter browses all active seeker posts.
+    These are reverse posts where seekers showcase themselves.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'recruiter':
+        return redirect('login')
+
+    seeker_posts = JobPost.objects.filter(status='active', poster_type='seeker')
+    return render(request, 'recruitments/seeker_posts_browser.html', {'seeker_posts': seeker_posts})
+
+
+def seeker_post_detail_view(request, post_id):
+    """
+    Recruiter views a single seeker's reverse post with their full profile.
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    post = get_object_or_404(JobPost, id=post_id, poster_type='seeker')
+
+    # Get the seeker's full profile
+    seeker_profile = None
+    try:
+        seeker_profile = JobSeeker.objects.get(user=post.poster)
+    except JobSeeker.DoesNotExist:
+        pass
+
+    return render(request, 'recruitments/seeker_post_detail.html', {
+        'post': post,
+        'seeker_profile': seeker_profile
+    })
+
