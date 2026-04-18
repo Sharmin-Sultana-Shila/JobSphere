@@ -7,11 +7,20 @@
     <h2>Post Your Profile</h2>
     <p class="subtitle">Let recruiters find you — showcase your skills and availability</p>
 
-    <form method="POST">
+    <!-- Show form errors if any -->
+    {% if form.errors %}
+        <div style="background: #ffe0e0; color: #c0392b; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+            {% for field, errors in form.errors.items %}
+                <p><strong>{{ field }}:</strong> {{ errors.0 }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'create_seeker_post' %}">
         {% csrf_token %}
 
         <div class="form-group">
-            <label>Post Title (e.g. "Experienced Django Developer Seeking Opportunities")</label>
+            <label>Post Title</label>
             {{ form.title }}
         </div>
 
