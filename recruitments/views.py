@@ -146,6 +146,9 @@ def create_seeker_post_view(request):
             post.save()
             messages.success(request, 'Your post has been published! Recruiters can now find you.')
             return redirect('my_seeker_posts')
+        else:
+            # Show form errors so we can see what went wrong
+            messages.error(request, 'Please fix the errors below.')
     else:
         # Pre-fill some fields from seeker profile
         try:
