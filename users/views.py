@@ -144,12 +144,31 @@ def recruiter_onboarding_view(request):
 
 def seeker_dashboard_view(request):
     """
-    Placeholder seeker dashboard. We'll build this fully in EPIC-02.
+    Seeker dashboard showing:
+    - Welcome message
+    - Recent job posts
+    - Quick links
     """
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'users/seeker_dashboard.html')
 
+    from recruitments.models import JobPost, Application
+
+    # Get recent active job posts (latest 5)
+    recent_jobs = JobPost.objects.filter(status='active', poster_type='recruiter')[:5]
+
+    # Get seeker's applications count
+    application_count = 0
+    try:
+        seeker = JobSeeker.objects.get(user=request.user)
+        application_count = Application.objects.filter(seeker=seeker).count()
+    except JobSeeker.DoesNotExist:
+        pass
+
+    return render(request, 'users/seeker_dashboard.html', {
+        'recent_jobs': recent_jobs,
+        'application_count': application_count
+    })
 
 def recruiter_dashboard_view(request):
     """
