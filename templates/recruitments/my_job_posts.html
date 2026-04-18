@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}My Job Posts — JobSphere{% endblock %}
+
+{% block extra_css %}
+.posts-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.posts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.posts-header h1 {
+    font-size: 24px;
+    color: #1a1a2e;
+}
+
+.post-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.post-info h3 {
+    font-size: 18px;
+    color: #1a1a2e;
+    margin-bottom: 6px;
+}
+
+.post-meta {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-closed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.post-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-small {
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn-edit {
+    background: #e8f4fd;
+    color: #0c447c;
+}
+
+.btn-edit:hover {
+    background: #d0e8f7;
+}
+
+.btn-close-post {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.btn-close-post:hover {
+    background: #ffeeba;
+}
+
+.btn-reopen {
+    background: #d4edda;
+    color: #155724;
+}
+
+.btn-reopen:hover {
+    background: #c3e6cb;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+.empty-state h3 {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.app-count {
+    background: #f0f2f5;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #555;
+    font-weight: 600;
+}
+{% endblock %}
+
+{% block content %}
+<div class="posts-container">
+    <div class="posts-header">
+        <h1>My Job Posts</h1>
+        <a href="{% url 'create_job_post' %}" class="btn btn-secondary" style="padding: 10px 20px; font-size: 14px;">+ Create New Post</a>
+    </div>
+
+    {% if job_posts %}
+        {% for post in job_posts %}
+        <div class="post-card">
+            <div class="post-info">
+                <h3>{{ post.title }}</h3>
+                <div class="post-meta">{{ post.location|default:"No location" }} &bull; {{ post.get_job_type_display }} &bull; {{ post.created_at|date:"M d, Y" }}</div>
+                <div style="margin-top: 8px;">
+                    <span class="status-badge {% if post.status == 'active' %}status-active{% else %}status-closed{% endif %}">
+                        {{ post.get_status_display }}
+                    </span>
+                    <span class="app-count" style="margin-left: 8px;">{{ post.application_count }} application{{ post.application_count|pluralize }}</span>
+                </div>
+            </div>
+            <div class="post-actions">
+                <a href="{% url 'edit_job_post' post.id %}" class="btn-small btn-edit">Edit</a>
+                <a href="{% url 'toggle_job_post_status' post.id %}" class="btn-small {% if post.status == 'active' %}btn-close-post{% else %}btn-reopen{% endif %}">
+                    {% if post.status == 'active' %}Close{% else %}Reopen{% endif %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No job posts yet</h3>
+            <p>Create your first job post to start receiving applications.</p>
+            <a href="{% url 'create_job_post' %}" class="btn btn-primary" style="width: auto; margin-top: 15px;">Create Job Post</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
