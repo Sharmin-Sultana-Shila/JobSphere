@@ -143,6 +143,7 @@ def create_seeker_post_view(request):
             post = form.save(commit=False)
             post.poster = request.user
             post.poster_type = 'seeker'
+            post.number_of_available_seats = 1
             post.save()
             messages.success(request, 'Your post has been published! Recruiters can now find you.')
             return redirect('my_seeker_posts')
