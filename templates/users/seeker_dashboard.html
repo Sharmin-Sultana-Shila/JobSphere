@@ -2,11 +2,149 @@
 
 {% block title %}Dashboard — JobSphere{% endblock %}
 
+{% block extra_css %}
+.dashboard-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: #e94560;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.quick-links {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.quick-link {
+    flex: 1;
+    background: white;
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+    text-decoration: none;
+    color: #1a1a2e;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s;
+}
+
+.quick-link:hover {
+    transform: translateY(-2px);
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+}
+
+.mini-job-card {
+    background: white;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s;
+}
+
+.mini-job-card:hover {
+    transform: translateY(-1px);
+}
+
+.mini-job-title {
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.mini-job-meta {
+    font-size: 13px;
+    color: #888;
+    margin-top: 3px;
+}
+
+.mini-job-type {
+    background: #e8f4fd;
+    color: #0c447c;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+{% endblock %}
+
 {% block content %}
-<div class="main-content">
+<div class="dashboard-container">
     <div class="dashboard-header">
         <h1>Welcome, {{ user.name }}! &#128075;</h1>
-        <p>Your Job Seeker Dashboard — we'll add more features here soon.</p>
+        <p>Here's your job seeking overview</p>
     </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-number">{{ application_count }}</div>
+            <div class="stat-label">My Applications</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ recent_jobs|length }}</div>
+            <div class="stat-label">Jobs Available</div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-links">
+        <a href="{% url 'job_list' %}" class="quick-link">&#128188; Browse Jobs</a>
+        <a href="{% url 'seeker_profile' %}" class="quick-link">&#128100; My Profile</a>
+    </div>
+
+    <!-- Recent Jobs -->
+    <div class="section-title">Recent Job Posts</div>
+    {% if recent_jobs %}
+        {% for post in recent_jobs %}
+        <a href="{% url 'job_detail' post.id %}" class="mini-job-card">
+            <div>
+                <div class="mini-job-title">{{ post.title }}</div>
+                <div class="mini-job-meta">{{ post.location|default:"Remote" }} &bull; {{ post.created_at|date:"M d" }}</div>
+            </div>
+            <span class="mini-job-type">{{ post.get_job_type_display }}</span>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; color: #888; padding: 30px;">No jobs posted yet. Check back soon!</div>
+    {% endif %}
 </div>
 {% endblock %}

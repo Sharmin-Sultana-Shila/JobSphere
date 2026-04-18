@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Jobs — JobSphere{% endblock %}
+
+{% block extra_css %}
+.jobs-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.jobs-header {
+    margin-bottom: 20px;
+}
+
+.jobs-header h1 {
+    font-size: 24px;
+    color: #1a1a2e;
+}
+
+.jobs-header p {
+    color: #888;
+    margin-top: 5px;
+}
+
+.job-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    display: block;
+    color: inherit;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.job-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.job-card h3 {
+    font-size: 18px;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.job-card-company {
+    font-size: 14px;
+    color: #e94560;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.job-card-meta {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.job-card-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.tag {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tag-type {
+    background: #e8f4fd;
+    color: #0c447c;
+}
+
+.tag-salary {
+    background: #d4edda;
+    color: #155724;
+}
+
+.tag-seats {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.tag-apps {
+    background: #f0f2f5;
+    color: #555;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+.empty-state h3 {
+    margin-bottom: 10px;
+    color: #555;
+}
+{% endblock %}
+
+{% block content %}
+<div class="jobs-container">
+    <div class="jobs-header">
+        <h1>Browse Jobs</h1>
+        <p>Find your next opportunity</p>
+    </div>
+
+    {% if job_posts %}
+        {% for post in job_posts %}
+        <a href="{% url 'job_detail' post.id %}" class="job-card">
+            <div class="job-card-header">
+                <div>
+                    <h3>{{ post.title }}</h3>
+                    <div class="job-card-meta">{{ post.location|default:"Remote" }} &bull; {{ post.created_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+            <div class="job-card-tags">
+                <span class="tag tag-type">{{ post.get_job_type_display }}</span>
+                {% if post.salary %}
+                    <span class="tag tag-salary">BDT {{ post.salary }}</span>
+                {% endif %}
+                <span class="tag tag-seats">{{ post.number_of_available_seats }} seat{{ post.number_of_available_seats|pluralize }}</span>
+                <span class="tag tag-apps">{{ post.application_count }} applied</span>
+            </div>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No jobs available right now</h3>
+            <p>Check back later for new opportunities.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

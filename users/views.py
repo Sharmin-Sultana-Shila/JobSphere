@@ -144,20 +144,57 @@ def recruiter_onboarding_view(request):
 
 def seeker_dashboard_view(request):
     """
-    Placeholder seeker dashboard. We'll build this fully in EPIC-02.
+    Seeker dashboard showing:
+    - Welcome message
+    - Recent job posts
+    - Quick links
     """
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'users/seeker_dashboard.html')
 
+    from recruitments.models import JobPost, Application
+
+    # Get recent active job posts (latest 5)
+    recent_jobs = JobPost.objects.filter(status='active', poster_type='recruiter')[:5]
+
+    # Get seeker's applications count
+    application_count = 0
+    try:
+        seeker = JobSeeker.objects.get(user=request.user)
+        application_count = Application.objects.filter(seeker=seeker).count()
+    except JobSeeker.DoesNotExist:
+        pass
+
+    return render(request, 'users/seeker_dashboard.html', {
+        'recent_jobs': recent_jobs,
+        'application_count': application_count
+    })
 
 def recruiter_dashboard_view(request):
     """
-    Placeholder recruiter dashboard. We'll build this fully in EPIC-02.
+    Recruiter dashboard showing:
+    - Welcome message
+    - Their job posts summary
+    - Quick links
     """
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'users/recruiter_dashboard.html')
+
+    from recruitments.models import JobPost
+
+    # Get recruiter's job posts
+    my_posts = JobPost.objects.filter(poster=request.user, poster_type='recruiter')
+    active_posts = my_posts.filter(status='active').count()
+    total_posts = my_posts.count()
+
+    # Total applications across all posts
+    total_applications = sum(post.application_count for post in my_posts)
+
+    return render(request, 'users/recruiter_dashboard.html', {
+        'active_posts': active_posts,
+        'total_posts': total_posts,
+        'total_applications': total_applications
+    })
 
 
 def seeker_profile_view(request):

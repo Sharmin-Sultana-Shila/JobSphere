@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job_post.title }} — JobSphere{% endblock %}
+
+{% block extra_css %}
+.detail-container {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.detail-card {
+    background: white;
+    border-radius: 12px;
+    padding: 35px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.detail-card h1 {
+    font-size: 26px;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.detail-company {
+    font-size: 16px;
+    color: #e94560;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.detail-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.detail-meta-item {
+    font-size: 14px;
+}
+
+.detail-meta-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #999;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.detail-meta-value {
+    color: #333;
+    font-weight: 500;
+}
+
+.detail-section {
+    margin-bottom: 20px;
+}
+
+.detail-section h3 {
+    font-size: 16px;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+}
+
+.detail-section p {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.7;
+    white-space: pre-line;
+}
+
+.detail-actions {
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 12px;
+}
+
+.btn-apply {
+    background: #e94560;
+    color: white;
+    padding: 14px 30px;
+    font-size: 16px;
+}
+
+.btn-apply:hover {
+    background: #c81e45;
+}
+
+.btn-applied {
+    background: #d4edda;
+    color: #155724;
+    padding: 14px 30px;
+    font-size: 16px;
+    cursor: default;
+}
+
+.btn-back {
+    background: #f0f2f5;
+    color: #333;
+    padding: 14px 30px;
+    font-size: 16px;
+}
+
+.btn-back:hover {
+    background: #e0e2e5;
+}
+
+.status-badge-large {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-closed {
+    background: #f8d7da;
+    color: #721c24;
+}
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="detail-card">
+
+        <span class="status-badge-large {% if job_post.status == 'active' %}status-active{% else %}status-closed{% endif %}">
+            {{ job_post.get_status_display }}
+        </span>
+
+        <h1>{{ job_post.title }}</h1>
+        {% if company_name %}
+            <div class="detail-company">{{ company_name }}</div>
+        {% endif %}
+
+        <!-- Meta Grid -->
+        <div class="detail-meta-grid">
+            <div class="detail-meta-item">
+                <div class="detail-meta-label">Location</div>
+                <div class="detail-meta-value">{{ job_post.location|default:"Not specified" }}</div>
+            </div>
+            <div class="detail-meta-item">
+                <div class="detail-meta-label">Job Type</div>
+                <div class="detail-meta-value">{{ job_post.get_job_type_display }}</div>
+            </div>
+            <div class="detail-meta-item">
+                <div class="detail-meta-label">Salary</div>
+                <div class="detail-meta-value">{% if job_post.salary %}BDT {{ job_post.salary }}{% else %}Not disclosed{% endif %}</div>
+            </div>
+            <div class="detail-meta-item">
+                <div class="detail-meta-label">Available Seats</div>
+                <div class="detail-meta-value">{{ job_post.number_of_available_seats }}</div>
+            </div>
+            <div class="detail-meta-item">
+                <div class="detail-meta-label">Experience Required</div>
+                <div class="detail-meta-value">{{ job_post.required_experience }} year{{ job_post.required_experience|pluralize }}</div>
+            </div>
+            <div class="detail-meta-item">
+                <div class="detail-meta-label">Applications</div>
+                <div class="detail-meta-value">{{ job_post.application_count }}</div>
+            </div>
+            {% if job_post.deadline %}
+            <div class="detail-meta-item">
+                <div class="detail-meta-label">Deadline</div>
+                <div class="detail-meta-value">{{ job_post.deadline|date:"M d, Y h:i A" }}</div>
+            </div>
+            {% endif %}
+            <div class="detail-meta-item">
+                <div class="detail-meta-label">Posted On</div>
+                <div class="detail-meta-value">{{ job_post.created_at|date:"M d, Y" }}</div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="detail-section">
+            <h3>Job Description</h3>
+            <p>{{ job_post.description }}</p>
+        </div>
+
+        <!-- Skills -->
+        {% if job_post.skills_text %}
+        <div class="detail-section">
+            <h3>Required Skills</h3>
+            <p>{{ job_post.skills_text }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="detail-actions">
+            {% if user.user_type == 'seeker' %}
+                {% if job_post.status == 'active' %}
+                    {% if already_applied %}
+                        <span class="btn btn-applied">Already Applied &#10003;</span>
+                    {% else %}
+                        <a href="{% url 'job_detail' job_post.id %}" class="btn btn-apply">Apply Now</a>
+                    {% endif %}
+                {% else %}
+                    <span class="btn btn-applied" style="background: #f8d7da; color: #721c24;">Applications Closed</span>
+                {% endif %}
+                <a href="{% url 'job_list' %}" class="btn btn-back">← Back to Jobs</a>
+            {% elif user.user_type == 'recruiter' and job_post.poster == user %}
+                <a href="{% url 'edit_job_post' job_post.id %}" class="btn btn-secondary">Edit Post</a>
+                <a href="{% url 'my_job_posts' %}" class="btn btn-back">← Back to My Posts</a>
+            {% else %}
+                <a href="{% url 'job_list' %}" class="btn btn-back">← Back to Jobs</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

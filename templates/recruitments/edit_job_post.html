@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Job Post — JobSphere{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 600px;">
+    <h2>Edit Job Post</h2>
+    <p class="subtitle">Update "{{ job_post.title }}"</p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Job Title</label>
+            {{ form.title }}
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            {{ form.description }}
+        </div>
+
+        <div class="form-group">
+            <label>Location</label>
+            {{ form.location }}
+        </div>
+
+        <div class="form-group">
+            <label>Job Type</label>
+            {{ form.job_type }}
+        </div>
+
+        <div class="form-group">
+            <label>Salary (BDT)</label>
+            {{ form.salary }}
+        </div>
+
+        <div class="form-group">
+            <label>Number of Seats</label>
+            {{ form.number_of_available_seats }}
+        </div>
+
+        <div class="form-group">
+            <label>Required Experience (years)</label>
+            {{ form.required_experience }}
+        </div>
+
+        <div class="form-group">
+            <label>Required Skills (comma separated)</label>
+            {{ form.skills_text }}
+        </div>
+
+        <div class="form-group">
+            <label>Application Deadline</label>
+            {{ form.deadline }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+
+    <p class="auth-link" style="margin-top: 15px;">
+        <a href="{% url 'my_job_posts' %}">← Back to My Posts</a>
+    </p>
+</div>
+{% endblock %}

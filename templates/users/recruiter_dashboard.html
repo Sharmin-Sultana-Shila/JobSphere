@@ -2,11 +2,93 @@
 
 {% block title %}Dashboard — JobSphere{% endblock %}
 
+{% block extra_css %}
+.dashboard-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: #16213e;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.quick-links {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.quick-link {
+    flex: 1;
+    background: white;
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+    text-decoration: none;
+    color: #1a1a2e;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s;
+}
+
+.quick-link:hover {
+    transform: translateY(-2px);
+}
+{% endblock %}
+
 {% block content %}
-<div class="main-content">
+<div class="dashboard-container">
     <div class="dashboard-header">
         <h1>Welcome, {{ user.name }}! &#127970;</h1>
-        <p>Your Recruiter Dashboard — we'll add more features here soon.</p>
+        <p>Here's your recruitment overview</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-number">{{ active_posts }}</div>
+            <div class="stat-label">Active Posts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_posts }}</div>
+            <div class="stat-label">Total Posts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_applications }}</div>
+            <div class="stat-label">Total Applications</div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-links">
+        <a href="{% url 'create_job_post' %}" class="quick-link">&#10133; Create Job Post</a>
+        <a href="{% url 'my_job_posts' %}" class="quick-link">&#128203; My Job Posts</a>
+        <a href="{% url 'recruiter_profile' %}" class="quick-link">&#128100; My Profile</a>
     </div>
 </div>
 {% endblock %}
