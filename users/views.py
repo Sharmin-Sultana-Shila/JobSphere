@@ -44,12 +44,7 @@ def register_view(request):
 
 
 def login_view(request):
-    """
-    Handles user login.
-    1. Shows the login form
-    2. Checks email + password
-    3. Redirects to correct dashboard based on role
-    """
+    
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
