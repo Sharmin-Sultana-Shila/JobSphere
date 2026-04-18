@@ -16,5 +16,5 @@ urlpatterns = [
     path('profile/recruiter/', views.recruiter_profile_view, name='recruiter_profile'),
     path('profile/recruiter/edit/', views.recruiter_profile_edit_view, name='recruiter_profile_edit'),
 ]
-
+# testing the project
 

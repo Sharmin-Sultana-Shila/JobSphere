@@ -3,10 +3,7 @@ from .models import User, JobSeeker, Recruiter, Company
 
 
 class RegisterForm(forms.Form):
-    """
-    Registration form.
-    User picks their role (seeker or recruiter), enters name, email, password.
-    """
+    # tetsing the project
     name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={
         'class': 'form-input',
         'placeholder': 'Full Name'
