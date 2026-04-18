@@ -144,7 +144,8 @@ def job_list_view(request):
 def job_detail_view(request, post_id):
     """
     Shows full details of a single job post.
-    Seekers see an Apply button. Recruiters see edit options.
+    Seekers see an Apply button and their preview ATS score.
+    Recruiters see edit options.
     """
     if not request.user.is_authenticated:
         return redirect('login')
@@ -153,10 +154,16 @@ def job_detail_view(request, post_id):
 
     # Check if seeker has already applied
     already_applied = False
+    ats_preview = None
+
     if request.user.user_type == 'seeker':
         try:
             seeker = JobSeeker.objects.get(user=request.user)
             already_applied = Application.objects.filter(job_post=job_post, seeker=seeker).exists()
+
+            # Calculate preview ATS score so seeker can see their match
+            from .utils import calculate_ats_score
+            ats_preview = calculate_ats_score(seeker, job_post)
         except JobSeeker.DoesNotExist:
             pass
 
@@ -172,9 +179,9 @@ def job_detail_view(request, post_id):
     return render(request, 'recruitments/job_detail.html', {
         'job_post': job_post,
         'already_applied': already_applied,
-        'company_name': company_name
+        'company_name': company_name,
+        'ats_preview': ats_preview,
     })
-
 
 def create_seeker_post_view(request):
     """
