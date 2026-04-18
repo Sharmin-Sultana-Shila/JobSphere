@@ -161,6 +161,17 @@ def create_seeker_post_view(request):
 
 
 
+def my_seeker_posts_view(request):
+    """
+    Seeker sees their own reverse posts.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'seeker':
+        return redirect('login')
+
+    posts = JobPost.objects.filter(poster=request.user, poster_type='seeker')
+    return render(request, 'recruitments/my_seeker_posts.html', {'posts': posts})
+
+
 def seeker_posts_browser_view(request):
     """
     Recruiter browses all active seeker posts.
@@ -193,4 +204,6 @@ def seeker_post_detail_view(request, post_id):
         'post': post,
         'seeker_profile': seeker_profile
     })
+
+
 
