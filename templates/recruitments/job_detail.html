@@ -130,6 +130,57 @@
     background: #f8d7da;
     color: #721c24;
 }
+
+.ats-preview-card {
+    background: linear-gradient(135deg, #f8f9fa, #fff);
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.ats-preview-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #999;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.ats-preview-score {
+    margin-bottom: 8px;
+}
+
+.ats-score-number {
+    font-size: 42px;
+    font-weight: 700;
+}
+
+.ats-score-max {
+    font-size: 20px;
+    color: #888;
+    font-weight: 500;
+}
+
+.ats-high {
+    color: #27ae60;
+}
+
+.ats-mid {
+    color: #f39c12;
+}
+
+.ats-low {
+    color: #e74c3c;
+}
+
+.ats-preview-hint {
+    font-size: 13px;
+    color: #666;
+}
+
 {% endblock %}
 
 {% block content %}
@@ -197,6 +248,30 @@
         </div>
         {% endif %}
 
+
+        <!-- ATS Score Preview (only for seekers) -->
+        {% if user.user_type == 'seeker' and ats_preview is not None %}
+        <div class="ats-preview-card">
+            <div class="ats-preview-label">Your ATS Match Score</div>
+            <div class="ats-preview-score">
+                <span class="ats-score-number 
+                    {% if ats_preview >= 75 %}ats-high{% elif ats_preview >= 50 %}ats-mid{% else %}ats-low{% endif %}">
+                    {{ ats_preview }}
+                </span>
+                <span class="ats-score-max">/ 100</span>
+            </div>
+            <div class="ats-preview-hint">
+                {% if ats_preview >= 75 %}
+                    &#10024; Strong match! You meet most requirements.
+                {% elif ats_preview >= 50 %}
+                    &#128165; Good match. You meet some key requirements.
+                {% else %}
+                    &#128161; Low match. Consider improving your profile skills.
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
         <!-- Actions -->
         <div class="detail-actions">
             {% if user.user_type == 'seeker' %}
