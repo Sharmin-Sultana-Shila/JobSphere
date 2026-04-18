@@ -172,11 +172,29 @@ def seeker_dashboard_view(request):
 
 def recruiter_dashboard_view(request):
     """
-    Placeholder recruiter dashboard. We'll build this fully in EPIC-02.
+    Recruiter dashboard showing:
+    - Welcome message
+    - Their job posts summary
+    - Quick links
     """
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'users/recruiter_dashboard.html')
+
+    from recruitments.models import JobPost
+
+    # Get recruiter's job posts
+    my_posts = JobPost.objects.filter(poster=request.user, poster_type='recruiter')
+    active_posts = my_posts.filter(status='active').count()
+    total_posts = my_posts.count()
+
+    # Total applications across all posts
+    total_applications = sum(post.application_count for post in my_posts)
+
+    return render(request, 'users/recruiter_dashboard.html', {
+        'active_posts': active_posts,
+        'total_posts': total_posts,
+        'total_applications': total_applications
+    })
 
 
 def seeker_profile_view(request):
