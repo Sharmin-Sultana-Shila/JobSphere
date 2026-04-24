@@ -147,6 +147,7 @@
                 </div>
             </div>
             <div class="post-actions">
+                <a href="{% url 'applicants_list' post.id %}" class="btn-small" style="background: #fde4b8; color: #7a4d00;">Applicants</a>
                 <a href="{% url 'edit_job_post' post.id %}" class="btn-small btn-edit">Edit</a>
                 <a href="{% url 'toggle_job_post_status' post.id %}" class="btn-small {% if post.status == 'active' %}btn-close-post{% else %}btn-reopen{% endif %}">
                     {% if post.status == 'active' %}Close{% else %}Reopen{% endif %}
