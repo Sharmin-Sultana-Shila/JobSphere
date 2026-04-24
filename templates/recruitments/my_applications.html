@@ -1,10 +1,216 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}My Applications — JobSphere{% endblock %}
+
+{% block extra_css %}
+.apps-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.apps-header h1 {
+    font-size: 24px;
+    color: #1a1a2e;
+}
+
+.apps-header p {
+    color: #888;
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
+.app-card {
+    background: white;
+    border-radius: 12px;
+    padding: 22px 25px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.app-info {
+    flex: 1;
+}
+
+.app-info h3 {
+    font-size: 17px;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.app-info h3 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.app-info h3 a:hover {
+    color: #e94560;
+}
+
+.app-meta {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.app-score-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ===== STATUS CHIP ===== */
+.status-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-applied {
+    background: #e8f4fd;
+    color: #0c447c;
+}
+
+.status-review {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-shortlisted {
+    background: #fde4b8;
+    color: #7a4d00;
+}
+
+.status-selected {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ===== ATS BADGE ===== */
+.ats-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ats-badge-high {
+    background: #d4edda;
+    color: #155724;
+}
+
+.ats-badge-mid {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.ats-badge-low {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ===== ACTIONS ===== */
+.app-actions {
+    flex-shrink: 0;
+}
+
+.btn-withdraw {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-withdraw:hover {
+    background: #f5c6cb;
+}
+
+.btn-view {
+    background: #e8f4fd;
+    color: #0c447c;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.btn-view:hover {
+    background: #d0e8f7;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state h3 {
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: #888;
+    margin-bottom: 20px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="apps-container">
+    <div class="apps-header">
+        <h1>My Applications</h1>
+        <p>Track the status of all your job applications</p>
+    </div>
+
+    {% if applications %}
+        {% for app in applications %}
+        <div class="app-card">
+            <div class="app-info">
+                <h3><a href="{% url 'job_detail' app.job_post.id %}">{{ app.job_post.title }}</a></h3>
+                <div class="app-meta">{{ app.job_post.location|default:"Remote" }} &bull; {{ app.job_post.get_job_type_display }} &bull; Applied {{ app.applied_at|date:"M d, Y" }}</div>
+                <div class="app-score-row">
+                    <span class="status-chip status-{{ app.status }}">{{ app.get_status_display }}</span>
+                    <span class="ats-badge {% if app.ats_score >= 75 %}ats-badge-high{% elif app.ats_score >= 50 %}ats-badge-mid{% else %}ats-badge-low{% endif %}">
+                        ATS: {{ app.ats_score }}/100
+                    </span>
+                </div>
+            </div>
+            <div class="app-actions">
+                {% if app.status == 'applied' %}
+                    <a href="{% url 'withdraw_application' app.id %}" class="btn-withdraw" onclick="return confirm('Are you sure you want to withdraw this application?')">Withdraw</a>
+                {% else %}
+                    <a href="{% url 'job_detail' app.job_post.id %}" class="btn-view">View Job</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No applications yet</h3>
+            <p>Browse jobs and apply to start tracking your applications here.</p>
+            <a href="{% url 'job_list' %}" class="btn btn-primary" style="width: auto;">Browse Jobs</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
