@@ -280,12 +280,14 @@
                     <a href="{% url 'seeker_dashboard' %}">Dashboard</a>
                     <a href="{% url 'job_list' %}">Browse Jobs</a>
                     <a href="{% url 'my_applications' %}">My Applications</a>
+                    <a href="{% url 'my_interviews' %}">Interviews</a>
                     <a href="{% url 'my_seeker_posts' %}">My Posts</a>
                     <a href="{% url 'seeker_profile' %}">Profile</a>
                 {% elif user.user_type == 'recruiter' %}
                     <a href="{% url 'recruiter_dashboard' %}">Dashboard</a>
                     <a href="{% url 'my_job_posts' %}">My Posts</a>
                     <a href="{% url 'create_job_post' %}">Post Job</a>
+                    <a href="{% url 'interview_list' %}">Interviews</a>
                     <a href="{% url 'seeker_posts_browser' %}">Find Talent</a>
                     <a href="{% url 'recruiter_profile' %}">Profile</a>
                 {% endif %}
