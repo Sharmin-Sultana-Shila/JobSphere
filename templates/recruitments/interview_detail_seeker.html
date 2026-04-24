@@ -1,10 +1,200 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Interview Details — JobSphere{% endblock %}
+
+{% block extra_css %}
+.detail-container {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.back-link {
+    display: inline-block;
+    color: #888;
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.back-link:hover {
+    color: #e94560;
+}
+
+.info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.info-card h1 {
+    font-size: 22px;
+    color: #1a1a2e;
+    margin-bottom: 5px;
+}
+
+.info-card .job-meta {
+    font-size: 14px;
+    color: #e94560;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.info-card h3 {
+    font-size: 14px;
+    color: #1a1a2e;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.detail-item-label {
+    font-size: 11px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 3px;
+}
+
+.detail-item-value {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.meeting-link {
+    color: #0c447c;
+    text-decoration: none;
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.meeting-link:hover {
+    text-decoration: underline;
+}
+
+.status-banner {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.status-scheduled {
+    background: #e8f4fd;
+    color: #0c447c;
+}
+
+.status-completed-selected {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-completed-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.feedback-text {
+    color: #555;
+    line-height: 1.7;
+    white-space: pre-line;
+    background: #f8f9fa;
+    padding: 12px 16px;
+    border-radius: 8px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+
+    <a href="{% url 'my_interviews' %}" class="back-link">← Back to My Interviews</a>
+
+    <!-- Status Banner -->
+    {% if interview.status == 'scheduled' %}
+        <div class="status-banner status-scheduled">&#128197; Scheduled Interview</div>
+    {% elif interview.status == 'cancelled' %}
+        <div class="status-banner status-cancelled">&#10060; This interview was cancelled</div>
+    {% elif interview.status == 'completed' and interview.selection_status == 'selected' %}
+        <div class="status-banner status-completed-selected">&#127881; Congratulations! You have been selected.</div>
+    {% elif interview.status == 'completed' and interview.selection_status == 'rejected' %}
+        <div class="status-banner status-completed-rejected">&#128533; Unfortunately, you were not selected this time.</div>
+    {% endif %}
+
+    <!-- Basic Info -->
+    <div class="info-card">
+        <h1>{{ interview.application.job_post.title }}</h1>
+
+        <h3>Interview Details</h3>
+        <div class="detail-grid">
+            <div>
+                <div class="detail-item-label">Date & Time</div>
+                <div class="detail-item-value">{{ interview.scheduled_at|date:"D, M d, Y" }}<br>{{ interview.scheduled_at|time:"h:i A" }}</div>
+            </div>
+            <div>
+                <div class="detail-item-label">Status</div>
+                <div class="detail-item-value">{{ interview.get_status_display }}</div>
+            </div>
+            {% if interview.location %}
+            <div>
+                <div class="detail-item-label">Location</div>
+                <div class="detail-item-value">{{ interview.location }}</div>
+            </div>
+            {% endif %}
+            {% if interview.meeting_link %}
+            <div>
+                <div class="detail-item-label">Meeting Link</div>
+                <div class="detail-item-value"><a href="{{ interview.meeting_link }}" target="_blank" class="meeting-link">{{ interview.meeting_link }}</a></div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Feedback (only if completed) -->
+    {% if interview.status == 'completed' %}
+    <div class="info-card">
+        <h3>Interview Feedback</h3>
+
+        {% if interview.rejection_reason %}
+        <div style="margin-bottom: 15px;">
+            <div class="detail-item-label">Why You Were Not Selected</div>
+            <div class="feedback-text" style="margin-top: 5px;">{{ interview.rejection_reason }}</div>
+        </div>
+        {% endif %}
+
+        {% if interview.improvement_areas %}
+        <div style="margin-bottom: 15px;">
+            <div class="detail-item-label">Areas to Improve</div>
+            <div class="feedback-text" style="margin-top: 5px;">{{ interview.improvement_areas }}</div>
+        </div>
+        {% endif %}
+
+        {% if interview.tech_skill_to_develop %}
+        <div>
+            <div class="detail-item-label">Technical Skills to Develop</div>
+            <div class="feedback-text" style="margin-top: 5px;">{{ interview.tech_skill_to_develop }}</div>
+        </div>
+        {% endif %}
+
+        {% if not interview.rejection_reason and not interview.improvement_areas and not interview.tech_skill_to_develop %}
+            <p style="color: #888; font-style: italic;">No detailed feedback provided.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
