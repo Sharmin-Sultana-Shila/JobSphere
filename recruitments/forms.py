@@ -125,3 +125,32 @@ class InterviewScheduleForm(forms.ModelForm):
                 'placeholder': 'e.g. https://meet.google.com/xxx-xxxx-xxx'
             }),
         }
+
+class InterviewFeedbackForm(forms.ModelForm):
+    """
+    Form for recruiter to submit interview outcome and feedback.
+    """
+    class Meta:
+        from .models import Interview
+        model = Interview
+        fields = ['selection_status', 'rejection_reason', 'improvement_areas', 'tech_skill_to_develop']
+        widgets = {
+            'selection_status': forms.Select(attrs={
+                'class': 'form-input'
+            }),
+            'rejection_reason': forms.Textarea(attrs={
+                'class': 'form-input',
+                'placeholder': 'If rejected, explain why...',
+                'rows': 3
+            }),
+            'improvement_areas': forms.Textarea(attrs={
+                'class': 'form-input',
+                'placeholder': 'What areas should the candidate improve?',
+                'rows': 3
+            }),
+            'tech_skill_to_develop': forms.Textarea(attrs={
+                'class': 'form-input',
+                'placeholder': 'Which technical skills should they develop?',
+                'rows': 3
+            }),
+        }
