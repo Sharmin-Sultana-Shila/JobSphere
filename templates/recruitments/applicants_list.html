@@ -1,10 +1,247 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Applicants — {{ job_post.title }}{% endblock %}
+
+{% block extra_css %}
+.applicants-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.applicants-header {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.applicants-header h1 {
+    font-size: 22px;
+    color: #1a1a2e;
+}
+
+.applicants-header .job-meta {
+    font-size: 13px;
+    color: #888;
+    margin-top: 5px;
+}
+
+/* ===== FILTER CHIPS ===== */
+.filter-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.filter-chip {
+    padding: 8px 16px;
+    background: white;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    transition: all 0.2s;
+}
+
+.filter-chip:hover {
+    border-color: #e94560;
+    color: #e94560;
+}
+
+.filter-chip.active {
+    background: #1a1a2e;
+    color: white;
+    border-color: #1a1a2e;
+}
+
+.filter-chip-count {
+    background: #f0f2f5;
+    color: #555;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.filter-chip.active .filter-chip-count {
+    background: #e94560;
+    color: white;
+}
+
+/* ===== APPLICANT CARDS ===== */
+.applicant-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s;
+}
+
+.applicant-card:hover {
+    transform: translateY(-2px);
+}
+
+.applicant-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.rank-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e94560;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.applicant-info h3 {
+    font-size: 16px;
+    color: #1a1a2e;
+    margin-bottom: 3px;
+}
+
+.applicant-meta {
+    font-size: 12px;
+    color: #888;
+}
+
+.applicant-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Status chips (reuse from my_applications) */
+.status-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-applied { background: #e8f4fd; color: #0c447c; }
+.status-review { background: #fff3cd; color: #856404; }
+.status-shortlisted { background: #fde4b8; color: #7a4d00; }
+.status-selected { background: #d4edda; color: #155724; }
+.status-rejected { background: #f8d7da; color: #721c24; }
+
+.ats-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ats-badge-high { background: #d4edda; color: #155724; }
+.ats-badge-mid { background: #fff3cd; color: #856404; }
+.ats-badge-low { background: #f8d7da; color: #721c24; }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state h3 {
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.back-link {
+    display: inline-block;
+    color: #888;
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.back-link:hover {
+    color: #e94560;
+}
+{% endblock %}
+
+{% block content %}
+<div class="applicants-container">
+
+    <a href="{% url 'my_job_posts' %}" class="back-link">← Back to My Posts</a>
+
+    <!-- Header -->
+    <div class="applicants-header">
+        <h1>Applicants for "{{ job_post.title }}"</h1>
+        <div class="job-meta">{{ job_post.location|default:"Remote" }} &bull; {{ job_post.get_job_type_display }} &bull; {{ status_counts.all }} total applicant{{ status_counts.all|pluralize }}</div>
+    </div>
+
+    <!-- Filter Chips -->
+    <div class="filter-chips">
+        <a href="{% url 'applicants_list' job_post.id %}" class="filter-chip {% if not status_filter %}active{% endif %}">
+            All <span class="filter-chip-count">{{ status_counts.all }}</span>
+        </a>
+        <a href="?status=applied" class="filter-chip {% if status_filter == 'applied' %}active{% endif %}">
+            Applied <span class="filter-chip-count">{{ status_counts.applied }}</span>
+        </a>
+        <a href="?status=review" class="filter-chip {% if status_filter == 'review' %}active{% endif %}">
+            Under Review <span class="filter-chip-count">{{ status_counts.review }}</span>
+        </a>
+        <a href="?status=shortlisted" class="filter-chip {% if status_filter == 'shortlisted' %}active{% endif %}">
+            Shortlisted <span class="filter-chip-count">{{ status_counts.shortlisted }}</span>
+        </a>
+        <a href="?status=selected" class="filter-chip {% if status_filter == 'selected' %}active{% endif %}">
+            Selected <span class="filter-chip-count">{{ status_counts.selected }}</span>
+        </a>
+        <a href="?status=rejected" class="filter-chip {% if status_filter == 'rejected' %}active{% endif %}">
+            Rejected <span class="filter-chip-count">{{ status_counts.rejected }}</span>
+        </a>
+    </div>
+
+    <!-- Applicants -->
+    {% if applications %}
+        {% for app in applications %}
+        <a href="{% url 'applicant_detail' app.id %}" class="applicant-card">
+            <div class="applicant-left">
+                <div class="rank-badge">{{ forloop.counter }}</div>
+                <div class="applicant-info">
+                    <h3>{{ app.seeker.user.name }}</h3>
+                    <div class="applicant-meta">Applied {{ app.applied_at|date:"M d, Y" }} &bull; {{ app.seeker.experience_years }} yr{{ app.seeker.experience_years|pluralize }} exp</div>
+                </div>
+            </div>
+            <div class="applicant-right">
+                <span class="status-chip status-{{ app.status }}">{{ app.get_status_display }}</span>
+                <span class="ats-badge {% if app.ats_score >= 75 %}ats-badge-high{% elif app.ats_score >= 50 %}ats-badge-mid{% else %}ats-badge-low{% endif %}">
+                    ATS: {{ app.ats_score }}
+                </span>
+            </div>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No applicants yet</h3>
+            <p>When candidates apply for this job, they will appear here.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
