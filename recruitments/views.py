@@ -461,3 +461,132 @@ def update_application_status_view(request, application_id):
             messages.error(request, 'Invalid status value.')
 
     return redirect('applicant_detail', application_id=application_id)
+
+
+def schedule_interview_view(request, application_id):
+    """
+    Recruiter schedules an interview for an applicant.
+    Only shortlisted applicants can be scheduled for interviews.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'recruiter':
+        return redirect('login')
+
+    application = get_object_or_404(Application, id=application_id)
+
+    # Ensure recruiter owns the related job post
+    if application.job_post.poster != request.user:
+        messages.error(request, 'You do not have permission.')
+        return redirect('my_job_posts')
+
+    # Must be shortlisted first
+    if application.status != 'shortlisted':
+        messages.error(request, 'You can only schedule interviews for shortlisted applicants.')
+        return redirect('applicant_detail', application_id=application_id)
+
+    from .forms import InterviewScheduleForm
+    from .models import Interview
+
+    if request.method == 'POST':
+        form = InterviewScheduleForm(request.POST)
+        if form.is_valid():
+            interview = form.save(commit=False)
+            interview.application = application
+            interview.status = 'scheduled'
+            interview.save()
+            messages.success(request, f'Interview scheduled with {application.seeker.user.name}.')
+            return redirect('interview_list')
+    else:
+        form = InterviewScheduleForm()
+
+    return render(request, 'recruitments/schedule_interview.html', {
+        'form': form,
+        'application': application
+    })
+
+
+def cancel_interview_view(request, interview_id):
+    """
+    Recruiter cancels a scheduled interview.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'recruiter':
+        return redirect('login')
+
+    from .models import Interview
+    interview = get_object_or_404(Interview, id=interview_id)
+
+    # Ensure recruiter owns the related job post
+    if interview.application.job_post.poster != request.user:
+        messages.error(request, 'You do not have permission.')
+        return redirect('my_job_posts')
+
+    if interview.status == 'scheduled':
+        interview.status = 'cancelled'
+        interview.save()
+        messages.success(request, 'Interview cancelled.')
+    else:
+        messages.error(request, 'Only scheduled interviews can be cancelled.')
+
+    return redirect('interview_list')
+
+
+def interview_list_view(request):
+    """
+    Recruiter sees all their interviews (scheduled, completed, cancelled).
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'recruiter':
+        return redirect('login')
+
+    from .models import Interview
+
+    # Get interviews where the job post belongs to this recruiter
+    interviews = Interview.objects.filter(
+        application__job_post__poster=request.user
+    ).select_related('application', 'application__seeker', 'application__job_post').order_by('-scheduled_at')
+
+    return render(request, 'recruitments/interview_list.html', {
+        'interviews': interviews
+    })
+
+
+def interview_detail_seeker_view(request, interview_id):
+    """
+    Seeker views the details of their interview.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'seeker':
+        return redirect('login')
+
+    from .models import Interview
+
+    try:
+        seeker = JobSeeker.objects.get(user=request.user)
+    except JobSeeker.DoesNotExist:
+        return redirect('seeker_dashboard')
+
+    interview = get_object_or_404(Interview, id=interview_id, application__seeker=seeker)
+
+    return render(request, 'recruitments/interview_detail_seeker.html', {
+        'interview': interview
+    })
+
+
+def my_interviews_seeker_view(request):
+    """
+    Seeker sees all their interviews.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'seeker':
+        return redirect('login')
+
+    from .models import Interview
+
+    try:
+        seeker = JobSeeker.objects.get(user=request.user)
+    except JobSeeker.DoesNotExist:
+        return redirect('seeker_dashboard')
+
+    interviews = Interview.objects.filter(
+        application__seeker=seeker
+    ).select_related('application', 'application__job_post').order_by('-scheduled_at')
+
+    return render(request, 'recruitments/my_interviews.html', {
+        'interviews': interviews
+    })
