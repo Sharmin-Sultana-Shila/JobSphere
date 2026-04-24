@@ -1,10 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}My Interviews — JobSphere{% endblock %}
+
+{% block extra_css %}
+.intv-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.intv-header h1 {
+    font-size: 24px;
+    color: #1a1a2e;
+}
+
+.intv-header p {
+    color: #888;
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
+.intv-card {
+    background: white;
+    border-radius: 12px;
+    padding: 22px 25px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.2s;
+}
+
+.intv-card:hover {
+    transform: translateY(-2px);
+}
+
+.intv-card h3 {
+    font-size: 17px;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.intv-meta {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.intv-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.intv-scheduled { background: #e8f4fd; color: #0c447c; }
+.intv-completed { background: #d4edda; color: #155724; }
+.intv-cancelled { background: #f8d7da; color: #721c24; }
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state h3 {
+    color: #555;
+    margin-bottom: 10px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="intv-container">
+    <div class="intv-header">
+        <h1>My Interviews</h1>
+        <p>View details and feedback for all your interviews</p>
+    </div>
+
+    {% if interviews %}
+        {% for intv in interviews %}
+        <a href="{% url 'interview_detail_seeker' intv.id %}" class="intv-card">
+            <h3>{{ intv.application.job_post.title }}</h3>
+            <div class="intv-meta">&#128197; {{ intv.scheduled_at|date:"D, M d, Y" }} at {{ intv.scheduled_at|time:"h:i A" }}</div>
+            {% if intv.location %}
+                <div class="intv-meta">&#128205; {{ intv.location }}</div>
+            {% endif %}
+            <span class="intv-status intv-{{ intv.status }}">{{ intv.get_status_display }}</span>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No interviews yet</h3>
+            <p>When you get shortlisted and a recruiter schedules an interview, it will appear here.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
