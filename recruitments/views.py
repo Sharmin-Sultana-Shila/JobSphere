@@ -353,3 +353,111 @@ def my_applications_view(request):
     return render(request, 'recruitments/my_applications.html', {
         'applications': applications
     })
+
+def applicants_list_view(request, post_id):
+    """
+    Recruiter views all applicants for a specific job post.
+    Applicants are ranked by ATS score (highest first).
+    Supports filtering by status.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'recruiter':
+        return redirect('login')
+
+    # Ensure the recruiter owns this job post
+    job_post = get_object_or_404(JobPost, id=post_id, poster=request.user)
+
+    # Get applications ranked by ATS score
+    applications = Application.objects.filter(job_post=job_post).order_by('-ats_score')
+
+    # Apply status filter if provided
+    status_filter = request.GET.get('status', '').strip()
+    if status_filter:
+        applications = applications.filter(status=status_filter)
+
+    # Count for each status to show in chips
+    all_apps = Application.objects.filter(job_post=job_post)
+    status_counts = {
+        'all': all_apps.count(),
+        'applied': all_apps.filter(status='applied').count(),
+        'review': all_apps.filter(status='review').count(),
+        'shortlisted': all_apps.filter(status='shortlisted').count(),
+        'selected': all_apps.filter(status='selected').count(),
+        'rejected': all_apps.filter(status='rejected').count(),
+    }
+
+    return render(request, 'recruitments/applicants_list.html', {
+        'job_post': job_post,
+        'applications': applications,
+        'status_filter': status_filter,
+        'status_counts': status_counts,
+    })
+
+
+def applicant_detail_view(request, application_id):
+    """
+    Recruiter views the full detail of one applicant.
+    Shows seeker profile, resume, skills match, and status update dropdown.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'recruiter':
+        return redirect('login')
+
+    application = get_object_or_404(Application, id=application_id)
+
+    # Ensure recruiter owns the related job post
+    if application.job_post.poster != request.user:
+        messages.error(request, 'You do not have permission to view this applicant.')
+        return redirect('my_job_posts')
+
+    seeker = application.seeker
+    job_post = application.job_post
+
+    # Calculate which job skills the seeker has (for skills match display)
+    seeker_skills = [s.strip().lower() for s in (seeker.skills_text or '').split(',') if s.strip()]
+    job_skills_raw = [s.strip() for s in (job_post.skills_text or '').split(',') if s.strip()]
+
+    skills_match = []
+    for skill in job_skills_raw:
+        skills_match.append({
+            'name': skill,
+            'matched': skill.lower() in seeker_skills
+        })
+
+    # Status choices for dropdown
+    status_choices = Application.STATUS_CHOICES
+
+    return render(request, 'recruitments/applicant_detail.html', {
+        'application': application,
+        'seeker': seeker,
+        'job_post': job_post,
+        'skills_match': skills_match,
+        'status_choices': status_choices,
+    })
+
+
+def update_application_status_view(request, application_id):
+    """
+    Recruiter updates the status of an application.
+    Called via form POST from the applicant detail page.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'recruiter':
+        return redirect('login')
+
+    application = get_object_or_404(Application, id=application_id)
+
+    # Ensure recruiter owns the related job post
+    if application.job_post.poster != request.user:
+        messages.error(request, 'You do not have permission to update this application.')
+        return redirect('my_job_posts')
+
+    if request.method == 'POST':
+        new_status = request.POST.get('status', '').strip()
+        valid_statuses = [choice[0] for choice in Application.STATUS_CHOICES]
+
+        if new_status in valid_statuses:
+            application.status = new_status
+            application.save()
+            messages.success(request, f'Status updated to {application.get_status_display()}.')
+        else:
+            messages.error(request, 'Invalid status value.')
+
+    return redirect('applicant_detail', application_id=application_id)
