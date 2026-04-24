@@ -1,10 +1,190 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Interviews — JobSphere{% endblock %}
+
+{% block extra_css %}
+.intv-container {
+    max-width: 850px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.intv-header {
+    margin-bottom: 20px;
+}
+
+.intv-header h1 {
+    font-size: 24px;
+    color: #1a1a2e;
+}
+
+.intv-header p {
+    color: #888;
+    margin-top: 5px;
+}
+
+.intv-card {
+    background: white;
+    border-radius: 12px;
+    padding: 22px 25px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.intv-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.intv-info h3 {
+    font-size: 17px;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.intv-job {
+    font-size: 14px;
+    color: #e94560;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.intv-meta {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.intv-meta strong {
+    color: #333;
+}
+
+.intv-meeting-link {
+    color: #0c447c;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+.intv-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.btn-small {
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.btn-feedback {
+    background: #e94560;
+    color: white;
+}
+
+.btn-feedback:hover {
+    background: #c81e45;
+}
+
+.btn-cancel-intv {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.btn-cancel-intv:hover {
+    background: #f5c6cb;
+}
+
+/* Status badges */
+.intv-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.intv-scheduled { background: #e8f4fd; color: #0c447c; }
+.intv-completed { background: #d4edda; color: #155724; }
+.intv-cancelled { background: #f8d7da; color: #721c24; }
+
+.selection-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 5px;
+}
+
+.selection-selected { background: #d4edda; color: #155724; }
+.selection-rejected { background: #f8d7da; color: #721c24; }
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state h3 {
+    color: #555;
+    margin-bottom: 10px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="intv-container">
+    <div class="intv-header">
+        <h1>Interviews</h1>
+        <p>All scheduled and completed interviews</p>
+    </div>
+
+    {% if interviews %}
+        {% for intv in interviews %}
+        <div class="intv-card">
+            <div class="intv-row">
+                <div class="intv-info">
+                    <h3>{{ intv.application.seeker.user.name }}</h3>
+                    <div class="intv-job">{{ intv.application.job_post.title }}</div>
+                    <div class="intv-meta">&#128197; <strong>{{ intv.scheduled_at|date:"D, M d, Y" }}</strong> at {{ intv.scheduled_at|time:"h:i A" }}</div>
+                    {% if intv.location %}
+                        <div class="intv-meta">&#128205; {{ intv.location }}</div>
+                    {% endif %}
+                    {% if intv.meeting_link %}
+                        <div class="intv-meta">&#128279; <a href="{{ intv.meeting_link }}" target="_blank" class="intv-meeting-link">{{ intv.meeting_link }}</a></div>
+                    {% endif %}
+                    <span class="intv-status intv-{{ intv.status }}">{{ intv.get_status_display }}</span>
+                    {% if intv.selection_status %}
+                        <span class="selection-badge selection-{{ intv.selection_status }}">{{ intv.get_selection_status_display }}</span>
+                    {% endif %}
+                </div>
+                <div class="intv-actions">
+                    {% if intv.status == 'scheduled' %}
+                        <a href="{% url 'submit_interview_feedback' intv.id %}" class="btn-small btn-feedback">Submit Feedback</a>
+                        <a href="{% url 'cancel_interview' intv.id %}" class="btn-small btn-cancel-intv" onclick="return confirm('Cancel this interview?')">Cancel</a>
+                    {% elif intv.status == 'completed' %}
+                        <a href="{% url 'submit_interview_feedback' intv.id %}" class="btn-small btn-feedback">Edit Feedback</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No interviews scheduled</h3>
+            <p>Schedule interviews from the applicant detail page after shortlisting candidates.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
