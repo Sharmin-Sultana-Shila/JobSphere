@@ -22,4 +22,9 @@ urlpatterns = [
     path('apply/<int:post_id>/', views.apply_for_job_view, name='apply_for_job'),
     path('withdraw/<int:application_id>/', views.withdraw_application_view, name='withdraw_application'),
     path('my-applications/', views.my_applications_view, name='my_applications'),
+
+    # STORY-15: Recruiter reviews applications
+    path('applicants/<int:post_id>/', views.applicants_list_view, name='applicants_list'),
+    path('applicant/<int:application_id>/', views.applicant_detail_view, name='applicant_detail'),
+    path('applicant/<int:application_id>/update-status/', views.update_application_status_view, name='update_application_status'),
 ]
