@@ -99,3 +99,29 @@ class SeekerPostForm(forms.ModelForm):
                 'rows': 2
             }),
         }
+
+
+class InterviewScheduleForm(forms.ModelForm):
+    """
+    Form for recruiter to schedule an interview.
+    """
+    from .models import Interview
+
+    class Meta:
+        from .models import Interview
+        model = Interview
+        fields = ['scheduled_at', 'location', 'meeting_link']
+        widgets = {
+            'scheduled_at': forms.DateTimeInput(attrs={
+                'class': 'form-input',
+                'type': 'datetime-local'
+            }),
+            'location': forms.TextInput(attrs={
+                'class': 'form-input',
+                'placeholder': 'e.g. Company Office, Dhaka (or leave empty for virtual)'
+            }),
+            'meeting_link': forms.URLInput(attrs={
+                'class': 'form-input',
+                'placeholder': 'e.g. https://meet.google.com/xxx-xxxx-xxx'
+            }),
+        }
