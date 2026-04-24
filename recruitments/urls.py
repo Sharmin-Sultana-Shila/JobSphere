@@ -17,4 +17,9 @@ urlpatterns = [
     path('seeker-post/my-posts/', views.my_seeker_posts_view, name='my_seeker_posts'),
     path('seeker-posts/', views.seeker_posts_browser_view, name='seeker_posts_browser'),
     path('seeker-posts/<int:post_id>/', views.seeker_post_detail_view, name='seeker_post_detail'),
+
+    # STORY-14: Application (apply, withdraw, my applications)
+    path('apply/<int:post_id>/', views.apply_for_job_view, name='apply_for_job'),
+    path('withdraw/<int:application_id>/', views.withdraw_application_view, name='withdraw_application'),
+    path('my-applications/', views.my_applications_view, name='my_applications'),
 ]
