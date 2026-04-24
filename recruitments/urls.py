@@ -27,4 +27,19 @@ urlpatterns = [
     path('applicants/<int:post_id>/', views.applicants_list_view, name='applicants_list'),
     path('applicant/<int:application_id>/', views.applicant_detail_view, name='applicant_detail'),
     path('applicant/<int:application_id>/update-status/', views.update_application_status_view, name='update_application_status'),
+
+    # STORY-16: Interview scheduling
+    path('interview/schedule/<int:application_id>/', views.schedule_interview_view, name='schedule_interview'),
+    path('interview/cancel/<int:interview_id>/', views.cancel_interview_view, name='cancel_interview'),
+    path('interview/list/', views.interview_list_view, name='interview_list'),
+
+    # STORY-17: Interview feedback
+    path('interview/feedback/<int:interview_id>/', views.submit_interview_feedback_view, name='submit_interview_feedback'),
+
+    # Seeker interview views
+    path('my-interviews/', views.my_interviews_seeker_view, name='my_interviews'),
+    path('interview/<int:interview_id>/', views.interview_detail_seeker_view, name='interview_detail_seeker'),
+
+
+    
 ]

@@ -378,6 +378,15 @@
     </div>
     {% endif %}
 
+    <!-- Schedule Interview Button (only for shortlisted) -->
+    {% if application.status == 'shortlisted' %}
+    <div class="info-card" style="background: linear-gradient(135deg, #fff5f7, #fff); border: 1px solid #fde4b8;">
+        <h3>Next Step: Interview</h3>
+        <p style="color: #555; margin-bottom: 15px; font-size: 14px;">This candidate is shortlisted. Schedule an interview to proceed.</p>
+        <a href="{% url 'schedule_interview' application.id %}" class="btn btn-primary" style="width: auto; display: inline-block; text-decoration: none;">Schedule Interview</a>
+    </div>
+    {% endif %}
+    
     <!-- Status Update -->
     <div class="status-update-card">
         <h3 style="font-size: 15px; color: #1a1a2e; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Application Status</h3>
