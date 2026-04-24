@@ -590,3 +590,70 @@ def my_interviews_seeker_view(request):
     return render(request, 'recruitments/my_interviews.html', {
         'interviews': interviews
     })
+def submit_interview_feedback_view(request, interview_id):
+    """
+    Recruiter submits interview outcome and feedback.
+    Also updates the related Application status.
+    Creates a notification for the seeker.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'recruiter':
+        return redirect('login')
+
+    from .models import Interview
+    from .forms import InterviewFeedbackForm
+    from updates.models import Notification
+
+    interview = get_object_or_404(Interview, id=interview_id)
+
+    # Ensure recruiter owns the related job post
+    if interview.application.job_post.poster != request.user:
+        messages.error(request, 'You do not have permission.')
+        return redirect('my_job_posts')
+
+    if interview.status == 'cancelled':
+        messages.error(request, 'Cannot submit feedback for a cancelled interview.')
+        return redirect('interview_list')
+
+    if request.method == 'POST':
+        form = InterviewFeedbackForm(request.POST, instance=interview)
+        if form.is_valid():
+            feedback = form.save(commit=False)
+            feedback.status = 'completed'
+            feedback.save()
+
+            # Update the related application status based on selection outcome
+            application = interview.application
+            if feedback.selection_status == 'selected':
+                application.status = 'selected'
+            elif feedback.selection_status == 'rejected':
+                application.status = 'rejected'
+            application.save()
+
+            # Create notification for the seeker
+            seeker_user = application.seeker.user
+            job_title = application.job_post.title
+
+            if feedback.selection_status == 'selected':
+                notif_title = f'Interview result: Selected for {job_title}!'
+                notif_content = f'Congratulations! You have been selected for the {job_title} position.'
+            else:
+                notif_title = f'Interview result: Not selected for {job_title}'
+                notif_content = f'Thank you for interviewing. Unfortunately you were not selected. Check feedback for improvement areas.'
+
+            Notification.objects.create(
+                user=seeker_user,
+                notif_type='interview',
+                title=notif_title,
+                content=notif_content,
+                is_read=False
+            )
+
+            messages.success(request, 'Feedback submitted successfully.')
+            return redirect('interview_list')
+    else:
+        form = InterviewFeedbackForm(instance=interview)
+
+    return render(request, 'recruitments/submit_feedback.html', {
+        'form': form,
+        'interview': interview
+    })
