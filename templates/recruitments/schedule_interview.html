@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Schedule Interview — JobSphere{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 560px;">
+    <h2>Schedule Interview</h2>
+    <p class="subtitle">Schedule interview with <strong>{{ application.seeker.user.name }}</strong> for "{{ application.job_post.title }}"</p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Interview Date & Time</label>
+            {{ form.scheduled_at }}
+        </div>
+
+        <div class="form-group">
+            <label>Location (optional)</label>
+            {{ form.location }}
+        </div>
+
+        <div class="form-group">
+            <label>Meeting Link (for virtual interviews)</label>
+            {{ form.meeting_link }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Schedule Interview</button>
+    </form>
+
+    <p class="auth-link" style="margin-top: 15px;">
+        <a href="{% url 'applicant_detail' application.id %}">← Cancel</a>
+    </p>
+</div>
+{% endblock %}
