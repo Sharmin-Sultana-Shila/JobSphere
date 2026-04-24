@@ -260,4 +260,96 @@ def seeker_post_detail_view(request, post_id):
     })
 
 
+# Saifa's Work:
+def apply_for_job_view(request, post_id):
+    """
+    Seeker applies for a job post.
+    Calculates ATS score, creates Application, increments application_count.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'seeker':
+        return redirect('login')
 
+    job_post = get_object_or_404(JobPost, id=post_id, status='active', poster_type='recruiter')
+
+    # Get the seeker profile
+    try:
+        seeker = JobSeeker.objects.get(user=request.user)
+    except JobSeeker.DoesNotExist:
+        messages.error(request, 'Please complete your profile before applying.')
+        return redirect('seeker_onboarding')
+
+    # Check if already applied
+    if Application.objects.filter(job_post=job_post, seeker=seeker).exists():
+        messages.error(request, 'You have already applied for this job.')
+        return redirect('job_detail', post_id=post_id)
+
+    # Calculate ATS score
+    from .utils import calculate_ats_score
+    ats_score = calculate_ats_score(seeker, job_post)
+
+    # Create the application
+    Application.objects.create(
+        job_post=job_post,
+        seeker=seeker,
+        status='applied',
+        ats_score=ats_score
+    )
+
+    # Increment application count on the job post
+    job_post.application_count = job_post.application_count + 1
+    job_post.save()
+
+    messages.success(request, f'Application submitted! Your ATS score: {ats_score}/100')
+    return redirect('my_applications')
+
+
+def withdraw_application_view(request, application_id):
+    """
+    Seeker withdraws their application.
+    Only applications in 'applied' status can be withdrawn.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'seeker':
+        return redirect('login')
+
+    try:
+        seeker = JobSeeker.objects.get(user=request.user)
+    except JobSeeker.DoesNotExist:
+        return redirect('seeker_dashboard')
+
+    application = get_object_or_404(Application, id=application_id, seeker=seeker)
+
+    # Only allow withdrawal if status is 'applied'
+    if application.status != 'applied':
+        messages.error(request, 'You can only withdraw applications that are still pending review.')
+        return redirect('my_applications')
+
+    # Decrement application count
+    job_post = application.job_post
+    if job_post.application_count > 0:
+        job_post.application_count = job_post.application_count - 1
+        job_post.save()
+
+    # Delete the application
+    application.delete()
+
+    messages.success(request, 'Application withdrawn successfully.')
+    return redirect('my_applications')
+
+
+def my_applications_view(request):
+    """
+    Seeker sees all their applications with status chips.
+    """
+    if not request.user.is_authenticated or request.user.user_type != 'seeker':
+        return redirect('login')
+
+    try:
+        seeker = JobSeeker.objects.get(user=request.user)
+    except JobSeeker.DoesNotExist:
+        return redirect('seeker_onboarding')
+
+    applications = Application.objects.filter(seeker=seeker).select_related('job_post')
+
+    return render(request, 'recruitments/my_applications.html', {
+        'applications': applications
+    })
