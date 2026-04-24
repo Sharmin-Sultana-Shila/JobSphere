@@ -279,6 +279,7 @@
                 {% if user.user_type == 'seeker' %}
                     <a href="{% url 'seeker_dashboard' %}">Dashboard</a>
                     <a href="{% url 'job_list' %}">Browse Jobs</a>
+                    <a href="{% url 'my_applications' %}">My Applications</a>
                     <a href="{% url 'my_seeker_posts' %}">My Posts</a>
                     <a href="{% url 'seeker_profile' %}">Profile</a>
                 {% elif user.user_type == 'recruiter' %}
