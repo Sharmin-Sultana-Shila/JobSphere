@@ -1,10 +1,402 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}{{ seeker.user.name }} — Applicant{% endblock %}
+
+{% block extra_css %}
+.detail-container {
+    max-width: 750px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.back-link {
+    display: inline-block;
+    color: #888;
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.back-link:hover {
+    color: #e94560;
+}
+
+/* ===== HEADER CARD ===== */
+.header-card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.applicant-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.applicant-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #e94560;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.applicant-avatar img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.applicant-title h1 {
+    font-size: 22px;
+    color: #1a1a2e;
+}
+
+.applicant-title .email {
+    font-size: 13px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.applicant-title .phone {
+    font-size: 13px;
+    color: #888;
+}
+
+.job-applied-for {
+    background: #f8f9fa;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #555;
+}
+
+.job-applied-for strong {
+    color: #1a1a2e;
+}
+
+/* ===== ATS BREAKDOWN ===== */
+.ats-card {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.ats-card-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    margin-bottom: 5px;
+}
+
+.ats-card-score {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.ats-card-breakdown {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    font-size: 13px;
+}
+
+.ats-breakdown-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 14px;
+    border-radius: 8px;
+}
+
+.ats-breakdown-label {
+    opacity: 0.7;
+    font-size: 11px;
+    margin-bottom: 3px;
+}
+
+.ats-breakdown-value {
+    font-weight: 600;
+}
+
+/* ===== INFO CARDS ===== */
+.info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.info-card h3 {
+    font-size: 15px;
+    color: #1a1a2e;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.info-item-label {
+    font-size: 11px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 3px;
+}
+
+.info-item-value {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+/* ===== SKILLS MATCH ===== */
+.skills-match-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.skill-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.skill-matched {
+    background: #d4edda;
+    color: #155724;
+}
+
+.skill-missing {
+    background: #f8d7da;
+    color: #721c24;
+    opacity: 0.7;
+}
+
+/* ===== STATUS UPDATE ===== */
+.status-update-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.current-status-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.status-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-applied { background: #e8f4fd; color: #0c447c; }
+.status-review { background: #fff3cd; color: #856404; }
+.status-shortlisted { background: #fde4b8; color: #7a4d00; }
+.status-selected { background: #d4edda; color: #155724; }
+.status-rejected { background: #f8d7da; color: #721c24; }
+
+.status-form-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.status-select {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fafafa;
+}
+
+.btn-update {
+    background: #e94560;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-update:hover {
+    background: #c81e45;
+}
+
+.resume-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #e8f4fd;
+    color: #0c447c;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.resume-link:hover {
+    background: #d0e8f7;
+}
+
+.bio-text {
+    color: #555;
+    line-height: 1.7;
+    white-space: pre-line;
+}
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+
+    <a href="{% url 'applicants_list' job_post.id %}" class="back-link">← Back to Applicants</a>
+
+    <!-- Header -->
+    <div class="header-card">
+        <div class="applicant-header">
+            <div class="applicant-avatar">
+                {% if seeker.user.profile_pic %}
+                    <img src="{{ seeker.user.profile_pic.url }}" alt="Avatar">
+                {% else %}
+                    {{ seeker.user.name|first }}
+                {% endif %}
+            </div>
+            <div class="applicant-title">
+                <h1>{{ seeker.user.name }}</h1>
+                <div class="email">{{ seeker.user.email }}</div>
+                {% if seeker.user.phone_num %}
+                    <div class="phone">{{ seeker.user.phone_num }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="job-applied-for">
+            Applied for: <strong>{{ job_post.title }}</strong> on {{ application.applied_at|date:"M d, Y" }}
+        </div>
+    </div>
+
+    <!-- ATS Score Breakdown -->
+    <div class="ats-card">
+        <div class="ats-card-label">ATS Match Score</div>
+        <div class="ats-card-score">{{ application.ats_score }}/100</div>
+        <div class="ats-card-breakdown">
+            <div class="ats-breakdown-item">
+                <div class="ats-breakdown-label">CGPA</div>
+                <div class="ats-breakdown-value">{{ seeker.cgpa|default:"Not set" }}{% if seeker.cgpa %} / 4.0{% endif %}</div>
+            </div>
+            <div class="ats-breakdown-item">
+                <div class="ats-breakdown-label">Experience</div>
+                <div class="ats-breakdown-value">{{ seeker.experience_years }} year{{ seeker.experience_years|pluralize }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bio -->
+    {% if seeker.bio %}
+    <div class="info-card">
+        <h3>About</h3>
+        <div class="bio-text">{{ seeker.bio }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Basic Info -->
+    <div class="info-card">
+        <h3>Profile Details</h3>
+        <div class="info-grid">
+            <div>
+                <div class="info-item-label">Education</div>
+                <div class="info-item-value">{{ seeker.education|default:"Not set" }}</div>
+            </div>
+            <div>
+                <div class="info-item-label">Location</div>
+                <div class="info-item-value">{{ seeker.location|default:"Not set" }}</div>
+            </div>
+        </div>
+        {% if seeker.career_goals %}
+        <div style="margin-top: 15px;">
+            <div class="info-item-label">Career Goals</div>
+            <div class="info-item-value" style="margin-top: 5px; line-height: 1.6;">{{ seeker.career_goals }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Skills Match -->
+    {% if skills_match %}
+    <div class="info-card">
+        <h3>Skills Match</h3>
+        <div class="skills-match-list">
+            {% for skill in skills_match %}
+                <span class="skill-chip {% if skill.matched %}skill-matched{% else %}skill-missing{% endif %}">
+                    {% if skill.matched %}&#10003;{% else %}&#10007;{% endif %} {{ skill.name }}
+                </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Seeker's full skills -->
+    {% if seeker.skills_text %}
+    <div class="info-card">
+        <h3>All Skills</h3>
+        <div class="info-item-value">{{ seeker.skills_text }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Resume -->
+    {% if seeker.resume %}
+    <div class="info-card">
+        <h3>Resume</h3>
+        <a href="{{ seeker.resume.url }}" target="_blank" class="resume-link">&#128196; View Resume</a>
+    </div>
+    {% endif %}
+
+    <!-- Status Update -->
+    <div class="status-update-card">
+        <h3 style="font-size: 15px; color: #1a1a2e; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Application Status</h3>
+        <div class="current-status-row">
+            <span style="font-size: 13px; color: #888;">Current status:</span>
+            <span class="status-chip status-{{ application.status }}">{{ application.get_status_display }}</span>
+        </div>
+        <form method="POST" action="{% url 'update_application_status' application.id %}">
+            {% csrf_token %}
+            <label style="font-size: 13px; color: #555; font-weight: 600; display: block; margin-bottom: 8px;">Change status to:</label>
+            <div class="status-form-row">
+                <select name="status" class="status-select">
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if application.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn-update">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
