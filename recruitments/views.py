@@ -437,7 +437,7 @@ def applicant_detail_view(request, application_id):
 def update_application_status_view(request, application_id):
     """
     Recruiter updates the status of an application.
-    Called via form POST from the applicant detail page.
+    Triggers a notification to the seeker.
     """
     if not request.user.is_authenticated or request.user.user_type != 'recruiter':
         return redirect('login')
@@ -454,15 +454,28 @@ def update_application_status_view(request, application_id):
         valid_statuses = [choice[0] for choice in Application.STATUS_CHOICES]
 
         if new_status in valid_statuses:
+            old_status = application.status
             application.status = new_status
             application.save()
+
+            # Trigger notification if status actually changed
+            if old_status != new_status:
+                from updates.utils import create_notification
+                seeker_user = application.seeker.user
+                job_title = application.job_post.title
+
+                create_notification(
+                    user=seeker_user,
+                    notif_type='status',
+                    title=f'Application status updated: {application.get_status_display()}',
+                    content=f'Your application for "{job_title}" is now {application.get_status_display()}.'
+                )
+
             messages.success(request, f'Status updated to {application.get_status_display()}.')
         else:
             messages.error(request, 'Invalid status value.')
 
     return redirect('applicant_detail', application_id=application_id)
-
-
 def schedule_interview_view(request, application_id):
     """
     Recruiter schedules an interview for an applicant.
