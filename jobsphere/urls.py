@@ -9,6 +9,7 @@ urlpatterns = [
     path('', lambda request: redirect('login')),
     path('users/', include('users.urls')),
     path('recruitments/', include('recruitments.urls')),
+    path('updates/', include('updates.urls')),
 ]
 
 # This lets Django serve uploaded files (profile pics, resumes) during development
