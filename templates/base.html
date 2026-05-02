@@ -266,6 +266,26 @@
             margin-top: 5px;
         }
 
+        /* ===== NOTIFICATION BELL BADGE ===== */
+        .notif-link {
+            position: relative;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #e94560;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.3;
+        }
+        
         {% block extra_css %}{% endblock %}
     </style>
 </head>
@@ -282,6 +302,12 @@
                     <a href="{% url 'my_applications' %}">My Applications</a>
                     <a href="{% url 'my_interviews' %}">Interviews</a>
                     <a href="{% url 'my_seeker_posts' %}">My Posts</a>
+                    <a href="{% url 'notifications_list' %}" class="notif-link">
+                        &#128276;
+                        {% if unread_notif_count > 0 %}
+                            <span class="notif-badge">{{ unread_notif_count }}</span>
+                        {% endif %}
+                    </a>
                     <a href="{% url 'seeker_profile' %}">Profile</a>
                 {% elif user.user_type == 'recruiter' %}
                     <a href="{% url 'recruiter_dashboard' %}">Dashboard</a>
@@ -289,6 +315,12 @@
                     <a href="{% url 'create_job_post' %}">Post Job</a>
                     <a href="{% url 'interview_list' %}">Interviews</a>
                     <a href="{% url 'seeker_posts_browser' %}">Find Talent</a>
+                    <a href="{% url 'notifications_list' %}" class="notif-link">
+                        &#128276;
+                        {% if unread_notif_count > 0 %}
+                            <span class="notif-badge">{{ unread_notif_count }}</span>
+                        {% endif %}
+                    </a>
                     <a href="{% url 'recruiter_profile' %}">Profile</a>
                 {% endif %}
                 <a href="{% url 'logout' %}" class="btn-logout">Logout</a>

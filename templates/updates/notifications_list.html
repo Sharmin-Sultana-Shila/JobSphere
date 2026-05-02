@@ -1,10 +1,212 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Notifications — JobSphere{% endblock %}
+
+{% block extra_css %}
+.notif-container {
+    max-width: 750px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.notif-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.notif-header h1 {
+    font-size: 24px;
+    color: #1a1a2e;
+}
+
+.notif-header p {
+    color: #888;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.btn-mark-all {
+    background: #16213e;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-mark-all:hover {
+    background: #1a1a2e;
+}
+
+/* ===== NOTIFICATION CARD ===== */
+.notif-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: transform 0.2s;
+}
+
+.notif-card.unread {
+    border-left: 4px solid #e94560;
+    background: #fffafb;
+}
+
+.notif-card.read {
+    opacity: 0.75;
+}
+
+/* ===== ICONS BY TYPE ===== */
+.notif-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.notif-icon-jobMatch {
+    background: #e8f4fd;
+    color: #0c447c;
+}
+
+.notif-icon-status {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.notif-icon-interview {
+    background: #fde4b8;
+    color: #7a4d00;
+}
+
+.notif-icon-chat {
+    background: #d4edda;
+    color: #155724;
+}
+
+/* ===== CONTENT ===== */
+.notif-content {
+    flex: 1;
+}
+
+.notif-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.notif-body {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.notif-time {
+    font-size: 12px;
+    color: #999;
+}
+
+/* ===== ACTIONS ===== */
+.notif-actions {
+    flex-shrink: 0;
+}
+
+.btn-mark-read {
+    background: none;
+    color: #e94560;
+    border: 1px solid #e94560;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn-mark-read:hover {
+    background: #e94560;
+    color: white;
+}
+
+.read-dot {
+    color: #aaa;
+    font-size: 11px;
+    padding: 6px 12px;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state h3 {
+    color: #555;
+    margin-bottom: 10px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="notif-container">
+    <div class="notif-header">
+        <div>
+            <h1>Notifications</h1>
+            <p>{{ unread_count }} unread notification{{ unread_count|pluralize }}</p>
+        </div>
+        {% if unread_count > 0 %}
+            <a href="{% url 'mark_all_read' %}" class="btn-mark-all">Mark all as read</a>
+        {% endif %}
+    </div>
+
+    {% if notifications %}
+        {% for notif in notifications %}
+        <div class="notif-card {% if notif.is_read %}read{% else %}unread{% endif %}">
+            <div class="notif-icon notif-icon-{{ notif.notif_type }}">
+                {% if notif.notif_type == 'jobMatch' %}
+                    &#128188;
+                {% elif notif.notif_type == 'status' %}
+                    &#128205;
+                {% elif notif.notif_type == 'interview' %}
+                    &#128197;
+                {% elif notif.notif_type == 'chat' %}
+                    &#128172;
+                {% endif %}
+            </div>
+            <div class="notif-content">
+                <div class="notif-title">{{ notif.title }}</div>
+                <div class="notif-body">{{ notif.content }}</div>
+                <div class="notif-time">{{ notif.created_at|date:"M d, Y" }} at {{ notif.created_at|time:"h:i A" }}</div>
+            </div>
+            <div class="notif-actions">
+                {% if not notif.is_read %}
+                    <a href="{% url 'mark_notification_read' notif.id %}" class="btn-mark-read">Mark read</a>
+                {% else %}
+                    <span class="read-dot">&#10003; Read</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No notifications yet</h3>
+            <p>You'll see updates about applications, interviews, and messages here.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
