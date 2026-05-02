@@ -480,6 +480,7 @@ def schedule_interview_view(request, application_id):
     """
     Recruiter schedules an interview for an applicant.
     Only shortlisted applicants can be scheduled for interviews.
+    Triggers a notification to the seeker.
     """
     if not request.user.is_authenticated or request.user.user_type != 'recruiter':
         return redirect('login')
@@ -506,6 +507,16 @@ def schedule_interview_view(request, application_id):
             interview.application = application
             interview.status = 'scheduled'
             interview.save()
+
+            # Trigger notification to seeker
+            from updates.utils import create_notification
+            create_notification(
+                user=application.seeker.user,
+                notif_type='interview',
+                title=f'Interview scheduled for {application.job_post.title}',
+                content=f'Your interview is scheduled on {interview.scheduled_at.strftime("%B %d, %Y at %I:%M %p")}. Check your interviews page for details.'
+            )
+
             messages.success(request, f'Interview scheduled with {application.seeker.user.name}.')
             return redirect('interview_list')
     else:
@@ -516,10 +527,10 @@ def schedule_interview_view(request, application_id):
         'application': application
     })
 
-
 def cancel_interview_view(request, interview_id):
     """
     Recruiter cancels a scheduled interview.
+    Triggers a notification to the seeker.
     """
     if not request.user.is_authenticated or request.user.user_type != 'recruiter':
         return redirect('login')
@@ -535,13 +546,21 @@ def cancel_interview_view(request, interview_id):
     if interview.status == 'scheduled':
         interview.status = 'cancelled'
         interview.save()
+
+        # Trigger notification to seeker
+        from updates.utils import create_notification
+        create_notification(
+            user=interview.application.seeker.user,
+            notif_type='interview',
+            title=f'Interview cancelled for {interview.application.job_post.title}',
+            content=f'Your interview scheduled for {interview.scheduled_at.strftime("%B %d, %Y at %I:%M %p")} has been cancelled.'
+        )
+
         messages.success(request, 'Interview cancelled.')
     else:
         messages.error(request, 'Only scheduled interviews can be cancelled.')
 
     return redirect('interview_list')
-
-
 def interview_list_view(request):
     """
     Recruiter sees all their interviews (scheduled, completed, cancelled).
@@ -606,7 +625,7 @@ def my_interviews_seeker_view(request):
 def submit_interview_feedback_view(request, interview_id):
     """
     Recruiter submits interview outcome and feedback.
-    Also updates the related Application status.
+    Updates the related Application status.
     Creates a notification for the seeker.
     """
     if not request.user.is_authenticated or request.user.user_type != 'recruiter':
@@ -614,7 +633,6 @@ def submit_interview_feedback_view(request, interview_id):
 
     from .models import Interview
     from .forms import InterviewFeedbackForm
-    from updates.models import Notification
 
     interview = get_object_or_404(Interview, id=interview_id)
 
@@ -634,7 +652,7 @@ def submit_interview_feedback_view(request, interview_id):
             feedback.status = 'completed'
             feedback.save()
 
-            # Update the related application status based on selection outcome
+            # Update application status based on outcome
             application = interview.application
             if feedback.selection_status == 'selected':
                 application.status = 'selected'
@@ -642,7 +660,8 @@ def submit_interview_feedback_view(request, interview_id):
                 application.status = 'rejected'
             application.save()
 
-            # Create notification for the seeker
+            # Trigger notification to seeker
+            from updates.utils import create_notification
             seeker_user = application.seeker.user
             job_title = application.job_post.title
 
@@ -651,14 +670,13 @@ def submit_interview_feedback_view(request, interview_id):
                 notif_content = f'Congratulations! You have been selected for the {job_title} position.'
             else:
                 notif_title = f'Interview result: Not selected for {job_title}'
-                notif_content = f'Thank you for interviewing. Unfortunately you were not selected. Check feedback for improvement areas.'
+                notif_content = 'Thank you for interviewing. Unfortunately you were not selected. Check feedback for improvement areas.'
 
-            Notification.objects.create(
+            create_notification(
                 user=seeker_user,
                 notif_type='interview',
                 title=notif_title,
-                content=notif_content,
-                is_read=False
+                content=notif_content
             )
 
             messages.success(request, 'Feedback submitted successfully.')
