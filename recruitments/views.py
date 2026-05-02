@@ -563,22 +563,32 @@ def cancel_interview_view(request, interview_id):
     return redirect('interview_list')
 def interview_list_view(request):
     """
-    Recruiter sees all their interviews (scheduled, completed, cancelled).
+    Recruiter sees all their interviews.
+    Scheduled interviews first (newest first), then completed, then cancelled.
     """
     if not request.user.is_authenticated or request.user.user_type != 'recruiter':
         return redirect('login')
 
     from .models import Interview
+    from django.db.models import Case, When, IntegerField
 
-    # Get interviews where the job post belongs to this recruiter
+    # Custom ordering: scheduled first, then completed, then cancelled
     interviews = Interview.objects.filter(
         application__job_post__poster=request.user
-    ).select_related('application', 'application__seeker', 'application__job_post').order_by('-scheduled_at')
+    ).select_related(
+        'application', 'application__seeker', 'application__job_post'
+    ).annotate(
+        status_order=Case(
+            When(status='scheduled', then=0),
+            When(status='completed', then=1),
+            When(status='cancelled', then=2),
+            output_field=IntegerField(),
+        )
+    ).order_by('status_order', '-scheduled_at')
 
     return render(request, 'recruitments/interview_list.html', {
         'interviews': interviews
     })
-
 
 def interview_detail_seeker_view(request, interview_id):
     """
