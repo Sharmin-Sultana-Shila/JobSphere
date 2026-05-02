@@ -302,6 +302,12 @@
                     <a href="{% url 'my_applications' %}">My Applications</a>
                     <a href="{% url 'my_interviews' %}">Interviews</a>
                     <a href="{% url 'my_seeker_posts' %}">My Posts</a>
+                    <a href="{% url 'notifications_list' %}" class="notif-link">
+                        &#128276;
+                        {% if unread_notif_count > 0 %}
+                            <span class="notif-badge">{{ unread_notif_count }}</span>
+                        {% endif %}
+                    </a>
                     <a href="{% url 'seeker_profile' %}">Profile</a>
                 {% elif user.user_type == 'recruiter' %}
                     <a href="{% url 'recruiter_dashboard' %}">Dashboard</a>
@@ -309,6 +315,12 @@
                     <a href="{% url 'create_job_post' %}">Post Job</a>
                     <a href="{% url 'interview_list' %}">Interviews</a>
                     <a href="{% url 'seeker_posts_browser' %}">Find Talent</a>
+                    <a href="{% url 'notifications_list' %}" class="notif-link">
+                        &#128276;
+                        {% if unread_notif_count > 0 %}
+                            <span class="notif-badge">{{ unread_notif_count }}</span>
+                        {% endif %}
+                    </a>
                     <a href="{% url 'recruiter_profile' %}">Profile</a>
                 {% endif %}
                 <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
