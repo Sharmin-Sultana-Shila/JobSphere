@@ -1,10 +1,431 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}{{ room.name }} — Chat{% endblock %}
+
+{% block extra_css %}
+.chat-window-container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 15px;
+    height: calc(100vh - 120px);
+}
+
+/* ===== MAIN CHAT ===== */
+.chat-main {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.chat-top-bar {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-top-bar h2 {
+    font-size: 18px;
+    color: #1a1a2e;
+}
+
+.chat-top-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.chat-top-actions a {
+    font-size: 12px;
+    color: #888;
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #f0f2f5;
+}
+
+.chat-top-actions a:hover {
+    background: #e0e2e5;
+    color: #333;
+}
+
+/* ===== MESSAGES AREA ===== */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.msg-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    position: relative;
+}
+
+.msg-mine {
+    background: #e94560;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.msg-other {
+    background: #f0f2f5;
+    color: #333;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+
+.msg-sender {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+.msg-mine .msg-sender {
+    color: #ffd1d9;
+}
+
+.msg-content {
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.msg-time {
+    font-size: 10px;
+    opacity: 0.6;
+    margin-top: 5px;
+    text-align: right;
+}
+
+.msg-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.msg-action-btn {
+    font-size: 11px;
+    color: #ffd1d9;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.msg-action-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.msg-other .msg-action-btn {
+    color: #888;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.msg-deleted {
+    font-style: italic;
+    opacity: 0.5;
+    max-width: 75%;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    color: #999;
+    font-size: 13px;
+}
+
+.msg-deleted.msg-mine-del {
+    align-self: flex-end;
+}
+
+.msg-deleted.msg-other-del {
+    align-self: flex-start;
+}
+
+/* ===== MESSAGE INPUT ===== */
+.chat-input-area {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    background: #fafafa;
+}
+
+.chat-input-form {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 24px;
+    font-size: 14px;
+    outline: none;
+}
+
+.chat-input:focus {
+    border-color: #e94560;
+}
+
+.btn-send {
+    background: #e94560;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-send:hover {
+    background: #c81e45;
+}
+
+.not-member-msg {
+    text-align: center;
+    padding: 15px;
+    background: #fff3cd;
+    color: #856404;
+    font-size: 14px;
+}
+
+/* ===== EDIT FORM ===== */
+.edit-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.edit-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.msg-other .edit-input {
+    border-color: #ddd;
+    background: white;
+    color: #333;
+}
+
+.btn-edit-save {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.msg-other .btn-edit-save {
+    background: #e94560;
+    color: white;
+}
+
+/* ===== SIDEBAR ===== */
+.chat-sidebar {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.sidebar-title {
+    padding: 15px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-bottom: 1px solid #eee;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.sidebar-members {
+    padding: 10px 15px;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+}
+
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.member-item:last-child {
+    border-bottom: none;
+}
+
+.member-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #1a1a2e;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.member-name {
+    font-size: 13px;
+    color: #333;
+    font-weight: 500;
+}
+
+.member-you {
+    font-size: 11px;
+    color: #888;
+}
+
+/* ===== RENAME FORM ===== */
+.rename-form {
+    display: flex;
+    gap: 6px;
+}
+
+.rename-input {
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    width: 120px;
+}
+
+.rename-btn {
+    background: #16213e;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="chat-window-container">
+
+    <!-- MAIN CHAT -->
+    <div class="chat-main">
+
+        <!-- Top Bar -->
+        <div class="chat-top-bar">
+            <div>
+                <h2>{{ room.name }}</h2>
+            </div>
+            <div class="chat-top-actions">
+                <a href="{% url 'chat_rooms_list' %}">← Rooms</a>
+                {% if room.created_by == user and room.room_type != 'direct' %}
+                    <form method="POST" action="{% url 'rename_room' room.id %}" class="rename-form">
+                        {% csrf_token %}
+                        <input type="text" name="name" value="{{ room.name }}" class="rename-input">
+                        <button type="submit" class="rename-btn">Rename</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chatMessages">
+            {% if chat_messages %}
+                {% for msg in chat_messages %}
+                    {% if msg.is_deleted %}
+                        <div class="msg-deleted {% if msg.sender == user %}msg-mine-del{% else %}msg-other-del{% endif %}">
+                            &#128465; This message was deleted
+                        </div>
+                    {% else %}
+                        <div class="msg-bubble {% if msg.sender == user %}msg-mine{% else %}msg-other{% endif %}">
+                            {% if msg.sender != user %}
+                                <div class="msg-sender">{{ msg.sender.name }}</div>
+                            {% endif %}
+                            <div class="msg-content">{{ msg.content }}</div>
+                            <div class="msg-time">{{ msg.sent_at|date:"M d" }} {{ msg.sent_at|time:"h:i A" }}</div>
+
+                            {% if msg.sender == user %}
+                                <div class="msg-actions">
+                                    <a href="#" class="msg-action-btn" onclick="document.getElementById('edit-{{ msg.id }}').style.display='flex'; return false;">Edit</a>
+                                    <a href="{% url 'delete_message' msg.id %}" class="msg-action-btn" onclick="return confirm('Delete this message?')">Delete</a>
+                                </div>
+                                <form method="POST" action="{% url 'edit_message' msg.id %}" class="edit-form" id="edit-{{ msg.id }}" style="display: none;">
+                                    {% csrf_token %}
+                                    <input type="text" name="content" value="{{ msg.content }}" class="edit-input">
+                                    <button type="submit" class="btn-edit-save">Save</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; color: #aaa; padding: 40px; font-size: 14px;">
+                    No messages yet. Be the first to say hello!
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Input -->
+        {% if is_member %}
+            <div class="chat-input-area">
+                <form method="POST" class="chat-input-form">
+                    {% csrf_token %}
+                    <input type="text" name="content" class="chat-input" placeholder="Type a message..." autocomplete="off" required>
+                    <button type="submit" class="btn-send">Send</button>
+                </form>
+            </div>
+        {% else %}
+            <div class="not-member-msg">
+                You must join this room to send messages.
+                <a href="{% url 'join_room' room.id %}" style="color: #0c447c; font-weight: 600;">Join now</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="chat-sidebar">
+        <div class="sidebar-title">Members ({{ members|length }})</div>
+        <div class="sidebar-members">
+            {% for member in members %}
+            <div class="member-item">
+                <div class="member-avatar-small">{{ member.user.name|first }}</div>
+                <div>
+                    <div class="member-name">{{ member.user.name }}</div>
+                    {% if member.user == user %}
+                        <div class="member-you">You</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Auto-scroll to bottom of chat -->
+<script>
+    var chatBox = document.getElementById('chatMessages');
+    if (chatBox) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+{% endblock %}

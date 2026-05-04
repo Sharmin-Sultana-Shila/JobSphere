@@ -1,10 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Create Chat Room — JobSphere{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 500px;">
+    <h2>Create Chat Room</h2>
+    <p class="subtitle">Start a new community discussion room</p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Room Name</label>
+            <input type="text" name="name" class="form-input" placeholder="e.g. React Developers" required>
+        </div>
+
+        <div class="form-group">
+            <label>Description (optional)</label>
+            <textarea name="description" class="form-input" placeholder="What is this room about?" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Room</button>
+    </form>
+
+    <p class="auth-link" style="margin-top: 15px;">
+        <a href="{% url 'chat_rooms_list' %}">← Back to Chat Rooms</a>
+    </p>
+</div>
+{% endblock %}

@@ -378,6 +378,12 @@
     </div>
     {% endif %}
 
+    <!-- Direct Message -->
+    <div class="info-card">
+        <h3>Contact</h3>
+        <a href="{% url 'start_direct_message' seeker.user.id %}" style="display: inline-block; padding: 10px 20px; background: #e94560; color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">&#128172; Message {{ seeker.user.name }}</a>
+    </div>
+    
     <!-- Schedule Interview Button (only for shortlisted) -->
     {% if application.status == 'shortlisted' %}
     <div class="info-card" style="background: linear-gradient(135deg, #fff5f7, #fff); border: 1px solid #fde4b8;">
