@@ -7,7 +7,7 @@
     <h2>Edit Job Post</h2>
     <p class="subtitle">Update "{{ job_post.title }}"</p>
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="form-group">
@@ -55,6 +55,14 @@
             {{ form.deadline }}
         </div>
 
+        <div class="form-group">
+            <label>Post Image (optional)</label>
+            {{ form.image }}
+            {% if job_post.image %}
+                <div style="margin-top: 8px; font-size: 13px; color: #888;">Current image: {{ job_post.image.name }}</div>
+            {% endif %}
+        </div>
+        
         <button type="submit" class="btn btn-primary">Save Changes</button>
     </form>
 

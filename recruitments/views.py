@@ -38,7 +38,7 @@ def edit_job_post_view(request, post_id):
     job_post = get_object_or_404(JobPost, id=post_id, poster=request.user)
 
     if request.method == 'POST':
-        form = JobPostForm(request.POST, instance=job_post)
+        form = JobPostForm(request.POST, request.FILES, instance=job_post)
         if form.is_valid():
             form.save()
             messages.success(request, 'Job post updated successfully!')
