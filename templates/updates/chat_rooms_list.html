@@ -1,10 +1,233 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Chat Rooms — JobSphere{% endblock %}
+
+{% block extra_css %}
+.chat-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.chat-header h1 {
+    font-size: 24px;
+    color: #1a1a2e;
+}
+
+.chat-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-create-room {
+    background: #16213e;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-create-room:hover {
+    background: #1a1a2e;
+}
+
+.btn-dms {
+    background: #e94560;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-dms:hover {
+    background: #c81e45;
+}
+
+.section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #999;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    margin-top: 25px;
+}
+
+/* ===== ROOM CARD ===== */
+.room-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.room-info {
+    flex: 1;
+}
+
+.room-info h3 {
+    font-size: 17px;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.room-info h3 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.room-info h3 a:hover {
+    color: #e94560;
+}
+
+.room-desc {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+.room-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.room-type-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.type-software { background: #e8f4fd; color: #0c447c; }
+.type-banking { background: #fff3cd; color: #856404; }
+.type-healthcare { background: #d4edda; color: #155724; }
+.type-general { background: #f0f2f5; color: #555; }
+
+.member-count {
+    font-size: 12px;
+    color: #888;
+}
+
+.room-actions {
+    flex-shrink: 0;
+}
+
+.btn-join {
+    background: #d4edda;
+    color: #155724;
+    padding: 8px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-join:hover {
+    background: #c3e6cb;
+}
+
+.btn-leave {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 8px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-leave:hover {
+    background: #f5c6cb;
+}
+
+.btn-enter {
+    background: #e8f4fd;
+    color: #0c447c;
+    padding: 8px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.btn-enter:hover {
+    background: #d0e8f7;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+}
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <h1>Chat Rooms</h1>
+        <div class="chat-header-actions">
+            <a href="{% url 'my_direct_messages' %}" class="btn-dms">&#128172; Direct Messages</a>
+            <a href="{% url 'create_room' %}" class="btn-create-room">+ Create Room</a>
+        </div>
+    </div>
+
+    {% if rooms_data %}
+        {% for item in rooms_data %}
+        <div class="room-card">
+            <div class="room-info">
+                <h3>
+                    {% if item.is_joined %}
+                        <a href="{% url 'chat_room_window' item.room.id %}">{{ item.room.name }}</a>
+                    {% else %}
+                        {{ item.room.name }}
+                    {% endif %}
+                </h3>
+                {% if item.room.description %}
+                    <div class="room-desc">{{ item.room.description }}</div>
+                {% endif %}
+                <div class="room-meta">
+                    <span class="room-type-badge type-{{ item.room.room_type }}">{{ item.room.get_room_type_display }}</span>
+                    <span class="member-count">&#128101; {{ item.room.member_count }} member{{ item.room.member_count|pluralize }}</span>
+                </div>
+            </div>
+            <div class="room-actions">
+                {% if item.is_joined %}
+                    <a href="{% url 'chat_room_window' item.room.id %}" class="btn-enter">Enter</a>
+                    <a href="{% url 'leave_room' item.room.id %}" class="btn-leave">Leave</a>
+                {% else %}
+                    <a href="{% url 'join_room' item.room.id %}" class="btn-join">Join</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No chat rooms available</h3>
+            <p>Create a room to start chatting!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
