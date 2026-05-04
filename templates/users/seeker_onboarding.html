@@ -5,7 +5,7 @@
 {% block content %}
 <div class="auth-container" style="max-width: 560px;">
     <h2>Complete Your Profile</h2>
-    <p class="subtitle">Tell recruiters about yourself</p>
+    <p class="subtitle">Tell recruiters about yourself!</p>
 
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
@@ -48,7 +48,7 @@
 
         <!-- Career Goals -->
         <div class="form-group">
-            <label for="id_career_goals">Career Goals</label>
+            <label for="id_career_goals">Career Goals:</label>
             {{ form.career_goals }}
         </div>
 
