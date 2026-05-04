@@ -1,10 +1,523 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Feed — JobSphere{% endblock %}
+
+{% block extra_css %}
+.feed-container {
+    max-width: 650px;
+    margin: 25px auto;
+    padding: 0 20px;
+}
+
+/* ===== CREATE POST CARD ===== */
+.create-post-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.create-post-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #1a1a2e;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.create-post-avatar img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.create-post-btn {
+    flex: 1;
+    padding: 12px 18px;
+    border: 1px solid #ddd;
+    border-radius: 24px;
+    background: #f5f5f5;
+    color: #888;
+    font-size: 14px;
+    text-decoration: none;
+    display: block;
+    transition: background 0.2s;
+}
+
+.create-post-btn:hover {
+    background: #eee;
+}
+
+/* ===== FEED POST CARD ===== */
+.feed-post {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+/* -- Header -- */
+.post-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 22px 0;
+}
+
+.post-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #e94560;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.post-avatar img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.post-author-info {
+    flex: 1;
+}
+
+.post-author-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.post-author-name a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.post-author-name a:hover {
+    color: #e94560;
+    text-decoration: underline;
+}
+
+.post-author-headline {
+    font-size: 12px;
+    color: #888;
+    margin-top: 1px;
+}
+
+.post-time {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 2px;
+}
+
+/* -- Title & Content -- */
+.post-title {
+    padding: 12px 22px 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.post-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.post-title a:hover {
+    text-decoration: underline;
+}
+
+.post-content {
+    padding: 8px 22px 0;
+    font-size: 14px;
+    color: #444;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.post-content-truncated {
+    max-height: 80px;
+    overflow: hidden;
+    position: relative;
+}
+
+.see-more-link {
+    color: #888;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 22px 0;
+    display: block;
+}
+
+.see-more-link:hover {
+    color: #e94560;
+}
+
+/* -- Tags -- */
+.post-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 22px 0;
+}
+
+.post-tag {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tag-type { background: #e8f4fd; color: #0c447c; }
+.tag-salary { background: #d4edda; color: #155724; }
+.tag-location { background: #f0f2f5; color: #555; }
+.tag-exp { background: #fff3cd; color: #856404; }
+
+/* -- Post Image -- */
+.post-image {
+    width: 100%;
+    margin-top: 12px;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+/* -- Engagement Stats -- */
+.post-stats {
+    padding: 10px 22px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #888;
+    border-bottom: 1px solid #eee;
+}
+
+.like-count-display {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* -- Action Buttons -- */
+.post-actions {
+    display: flex;
+    border-bottom: 1px solid #eee;
+}
+
+.action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.action-btn:hover {
+    background: #f5f5f5;
+}
+
+.action-btn.liked {
+    color: #e94560;
+}
+
+.action-btn-icon {
+    font-size: 18px;
+}
+
+/* -- Comments Section -- */
+.comments-section {
+    padding: 12px 22px 16px;
+}
+
+.comment-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.comment-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #1a1a2e;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.comment-bubble {
+    background: #f0f2f5;
+    border-radius: 12px;
+    padding: 10px 14px;
+    flex: 1;
+}
+
+.comment-author {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.comment-text {
+    font-size: 13px;
+    color: #444;
+    margin-top: 2px;
+    line-height: 1.5;
+}
+
+.comment-time {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 4px;
+}
+
+.view-all-comments {
+    font-size: 13px;
+    color: #888;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.view-all-comments:hover {
+    color: #e94560;
+}
+
+/* -- Comment Input -- */
+.comment-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.comment-input {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    border-radius: 24px;
+    font-size: 13px;
+    background: #f5f5f5;
+    outline: none;
+}
+
+.comment-input:focus {
+    border-color: #e94560;
+    background: white;
+}
+
+.btn-comment-submit {
+    background: #e94560;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-comment-submit:hover {
+    background: #c81e45;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state h3 {
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: #888;
+}
+{% endblock %}
+
+{% block content %}
+<div class="feed-container">
+
+    <!-- CREATE POST CARD -->
+    <div class="create-post-card">
+        <div class="create-post-avatar">
+            {% if user.profile_pic %}
+                <img src="{{ user.profile_pic.url }}" alt="You">
+            {% else %}
+                {{ user.name|first }}
+            {% endif %}
+        </div>
+        {% if user.user_type == 'recruiter' %}
+            <a href="{% url 'create_job_post' %}" class="create-post-btn">Post a job opportunity...</a>
+        {% else %}
+            <a href="{% url 'create_seeker_post' %}" class="create-post-btn">Share your availability...</a>
+        {% endif %}
+    </div>
+
+    <!-- FEED POSTS -->
+    {% if feed_data %}
+        {% for item in feed_data %}
+        <div class="feed-post">
+
+            <!-- Header -->
+            <div class="post-header">
+                <div class="post-avatar">
+                    {% if item.poster_pic %}
+                        <img src="{{ item.poster_pic }}" alt="Avatar">
+                    {% else %}
+                        {{ item.post.poster.name|first }}
+                    {% endif %}
+                </div>
+                <div class="post-author-info">
+                    <div class="post-author-name">
+                        {{ item.post.poster.name }}
+                    </div>
+                    <div class="post-author-headline">
+                        {% if item.poster_designation %}{{ item.poster_designation }}{% endif %}
+                        {% if item.poster_company %} at {{ item.poster_company }}{% endif %}
+                    </div>
+                    <div class="post-time">{{ item.post.created_at|timesince }} ago</div>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <div class="post-title">
+                <a href="{% url 'job_detail' item.post.id %}">{{ item.post.title }}</a>
+            </div>
+
+            <!-- Content -->
+            <div class="post-content post-content-truncated" id="content-{{ item.post.id }}">{{ item.post.description }}</div>
+            {% if item.post.description|length > 200 %}
+                <span class="see-more-link" onclick="document.getElementById('content-{{ item.post.id }}').classList.toggle('post-content-truncated'); this.textContent = this.textContent === '...see more' ? 'show less' : '...see more';">...see more</span>
+            {% endif %}
+
+            <!-- Tags -->
+            <div class="post-tags">
+                <span class="post-tag tag-type">{{ item.post.get_job_type_display }}</span>
+                {% if item.post.salary %}
+                    <span class="post-tag tag-salary">BDT {{ item.post.salary }}</span>
+                {% endif %}
+                {% if item.post.location %}
+                    <span class="post-tag tag-location">{{ item.post.location }}</span>
+                {% endif %}
+                {% if item.post.required_experience %}
+                    <span class="post-tag tag-exp">{{ item.post.required_experience }} yrs exp</span>
+                {% endif %}
+            </div>
+
+            <!-- Post Image -->
+            {% if item.post.image %}
+                <img src="{{ item.post.image.url }}" alt="Post image" class="post-image">
+            {% endif %}
+
+            <!-- Stats -->
+            <div class="post-stats">
+                <div class="like-count-display">
+                    {% if item.like_count > 0 %}
+                        &#128077; {{ item.like_count }} like{{ item.like_count|pluralize }}
+                    {% else %}
+                        Be the first to like this
+                    {% endif %}
+                </div>
+                <div>
+                    {% if item.comment_count > 0 %}
+                        {{ item.comment_count }} comment{{ item.comment_count|pluralize }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="post-actions">
+                <a href="{% url 'like_post' item.post.id %}?next={% url 'feed' %}" class="action-btn {% if item.user_liked %}liked{% endif %}">
+                    <span class="action-btn-icon">{% if item.user_liked %}&#128077;{% else %}&#128077;{% endif %}</span>
+                    {% if item.user_liked %}Liked{% else %}Like{% endif %}
+                </a>
+                <button class="action-btn" onclick="document.getElementById('comment-input-{{ item.post.id }}').focus();">
+                    <span class="action-btn-icon">&#128172;</span>
+                    Comment
+                </button>
+                <a href="{% url 'job_detail' item.post.id %}" class="action-btn">
+                    <span class="action-btn-icon">&#128065;</span>
+                    View Details
+                </a>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="comments-section">
+                {% if item.comment_count > 5 %}
+                    <a href="{% url 'job_detail' item.post.id %}" class="view-all-comments">View all {{ item.comment_count }} comments</a>
+                {% endif %}
+
+                {% for comment in item.comments %}
+                <div class="comment-item">
+                    <div class="comment-avatar">{{ comment.user.name|first }}</div>
+                    <div class="comment-bubble">
+                        <div class="comment-author">{{ comment.user.name }}</div>
+                        <div class="comment-text">{{ comment.content }}</div>
+                        <div class="comment-time">{{ comment.created_at|timesince }} ago</div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Comment Input -->
+                <form method="POST" action="{% url 'comment_post' item.post.id %}" class="comment-input-row">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'feed' %}">
+                    <input type="text" name="comment_content" id="comment-input-{{ item.post.id }}" class="comment-input" placeholder="Add a comment..." autocomplete="off" required>
+                    <button type="submit" class="btn-comment-submit">Post</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No posts yet</h3>
+            <p>
+                {% if user.user_type == 'seeker' %}
+                    When recruiters post jobs, they will appear here.
+                {% else %}
+                    When seekers post their profiles, they will appear here.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
