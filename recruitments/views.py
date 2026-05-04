@@ -13,7 +13,7 @@ def create_job_post_view(request):
         return redirect('login')
 
     if request.method == 'POST':
-        form = JobPostForm(request.POST)
+        form = JobPostForm(request.POST, request.FILES)
         if form.is_valid():
             job_post = form.save(commit=False)
             job_post.poster = request.user
