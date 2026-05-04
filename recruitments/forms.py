@@ -10,7 +10,7 @@ class JobPostForm(forms.ModelForm):
         model = JobPost
         fields = ['title', 'description', 'location', 'job_type', 'salary',
                   'number_of_available_seats', 'required_experience', 'skills_text',
-                  'deadline']
+                  'deadline', 'image']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-input',
@@ -20,6 +20,9 @@ class JobPostForm(forms.ModelForm):
                 'class': 'form-input',
                 'placeholder': 'Describe the role, responsibilities, and requirements...',
                 'rows': 5
+            }),
+            'image': forms.FileInput(attrs={
+                'class': 'form-input'
             }),
             'location': forms.TextInput(attrs={
                 'class': 'form-input',
