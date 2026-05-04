@@ -408,7 +408,11 @@
         <div class="sidebar-members">
             {% for member in members %}
             <div class="member-item">
-                <div class="member-avatar-small">{{ member.user.name|first }}</div>
+                {% if member.user.profile_pic %}
+                    <img src="{{ member.user.profile_pic.url }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                    <div class="member-avatar-small">{{ member.user.name|first }}</div>
+                {% endif %}
                 <div>
                     <div class="member-name">{{ member.user.name }}</div>
                     {% if member.user == user %}
