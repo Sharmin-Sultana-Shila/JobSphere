@@ -223,6 +223,7 @@
 
         <!-- Actions -->
         <div class="detail-actions">
+            <a href="{% url 'start_direct_message' post.poster.id %}" class="btn btn-primary" style="width: auto; display: inline-block; text-decoration: none;">&#128172; Message {{ post.poster.name }}</a>
             <a href="{% url 'seeker_posts_browser' %}" class="btn btn-back">← Back to Candidates</a>
         </div>
     </div>
