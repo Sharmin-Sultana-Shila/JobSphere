@@ -39,7 +39,10 @@ urlpatterns = [
     # Seeker interview views
     path('my-interviews/', views.my_interviews_seeker_view, name='my_interviews'),
     path('interview/<int:interview_id>/', views.interview_detail_seeker_view, name='interview_detail_seeker'),
-
+    # Feed, Like, Comment
+    path('feed/', views.feed_view, name='feed'),
+    path('like/<int:post_id>/', views.like_post_view, name='like_post'),
+    path('comment/<int:post_id>/', views.comment_post_view, name='comment_post'),
 
     
 ]

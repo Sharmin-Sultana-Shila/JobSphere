@@ -59,9 +59,9 @@ def login_view(request):
 
                 # Redirect based on role
                 if user.user_type == 'seeker':
-                    return redirect('seeker_dashboard')
+                    return redirect('feed')
                 elif user.user_type == 'recruiter':
-                    return redirect('recruiter_dashboard')
+                    return redirect('feed')
                 else:
                     return redirect('login')
             else:

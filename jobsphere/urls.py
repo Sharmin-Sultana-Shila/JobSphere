@@ -6,7 +6,7 @@ from django.shortcuts import redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', lambda request: redirect('login')),
+    path('', lambda request: redirect('feed') if request.user.is_authenticated else redirect('login')),
     path('users/', include('users.urls')),
     path('recruitments/', include('recruitments.urls')),
     path('updates/', include('updates.urls')),

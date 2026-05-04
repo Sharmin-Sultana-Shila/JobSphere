@@ -13,7 +13,7 @@ def create_job_post_view(request):
         return redirect('login')
 
     if request.method == 'POST':
-        form = JobPostForm(request.POST)
+        form = JobPostForm(request.POST, request.FILES)
         if form.is_valid():
             job_post = form.save(commit=False)
             job_post.poster = request.user
@@ -700,3 +700,137 @@ def submit_interview_feedback_view(request, interview_id):
     })
 
 # reviewed
+
+
+def like_post_view(request, post_id):
+    """
+    Toggle like on a job post.
+    If already liked, unlike it. If not liked, like it.
+    Sends notification to the post owner when liked.
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    from .models import PostLike
+    from updates.utils import create_notification
+    job_post = get_object_or_404(JobPost, id=post_id)
+
+    existing_like = PostLike.objects.filter(job_post=job_post, user=request.user)
+    if existing_like.exists():
+        existing_like.delete()
+    else:
+        PostLike.objects.create(job_post=job_post, user=request.user)
+
+        # Send notification to post owner (don't notify yourself)
+        if job_post.poster != request.user:
+            create_notification(
+                user=job_post.poster,
+                notif_type='status',
+                title=f'{request.user.name} liked your post',
+                content=f'{request.user.name} liked your post "{job_post.title}".'
+            )
+
+    next_url = request.GET.get('next', '')
+    if next_url:
+        return redirect(next_url)
+    return redirect('feed')
+
+
+def comment_post_view(request, post_id):
+    """
+    Add a comment to a job post.
+    Sends notification to the post owner when commented.
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    from .models import PostComment
+    from updates.utils import create_notification
+    job_post = get_object_or_404(JobPost, id=post_id)
+
+    if request.method == 'POST':
+        content = request.POST.get('comment_content', '').strip()
+        if content:
+            PostComment.objects.create(
+                job_post=job_post,
+                user=request.user,
+                content=content
+            )
+
+            # Send notification to post owner (don't notify yourself)
+            if job_post.poster != request.user:
+                create_notification(
+                    user=job_post.poster,
+                    notif_type='status',
+                    title=f'{request.user.name} commented on your post',
+                    content=f'{request.user.name} commented on "{job_post.title}": {content[:80]}'
+                )
+
+    next_url = request.POST.get('next', '')
+    if next_url:
+        return redirect(next_url)
+    return redirect('feed')
+
+
+def feed_view(request):
+    """
+    LinkedIn-style feed page.
+    Seekers see recruiter job posts.
+    Recruiters see seeker reverse posts.
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    from .models import PostLike, PostComment
+
+    if request.user.user_type == 'seeker':
+        posts = JobPost.objects.filter(status='active', poster_type='recruiter')
+    elif request.user.user_type == 'recruiter':
+        posts = JobPost.objects.filter(status='active', poster_type='seeker')
+    else:
+        posts = JobPost.objects.none()
+
+    # Build feed data with like/comment info
+    feed_data = []
+    for post in posts:
+        like_count = PostLike.objects.filter(job_post=post).count()
+        user_liked = PostLike.objects.filter(job_post=post, user=request.user).exists()
+        comments = PostComment.objects.filter(job_post=post).select_related('user')[:5]
+        comment_count = PostComment.objects.filter(job_post=post).count()
+
+        # Get poster profile info
+        poster_pic = None
+        poster_company = ''
+        poster_designation = ''
+        if post.poster.profile_pic:
+            poster_pic = post.poster.profile_pic.url
+
+        if post.poster_type == 'recruiter':
+            try:
+                rec = Recruiter.objects.get(user=post.poster)
+                if rec.company:
+                    poster_company = rec.company.name
+                poster_designation = rec.designation or ''
+            except Recruiter.DoesNotExist:
+                pass
+        else:
+            try:
+                seeker_profile = JobSeeker.objects.get(user=post.poster)
+                poster_designation = seeker_profile.education or ''
+            except JobSeeker.DoesNotExist:
+                pass
+
+        feed_data.append({
+            'post': post,
+            'like_count': like_count,
+            'user_liked': user_liked,
+            'comments': comments,
+            'comment_count': comment_count,
+            'poster_pic': poster_pic,
+            'poster_company': poster_company,
+            'poster_designation': poster_designation,
+        })
+
+    return render(request, 'recruitments/feed.html', {
+        'feed_data': feed_data,
+    })
