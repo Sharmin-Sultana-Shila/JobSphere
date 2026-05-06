@@ -478,6 +478,12 @@
                     <span class="action-btn-icon">&#128065;</span>
                     View Details
                 </a>
+                {% if item.post.poster != user %}
+                <a href="{% url 'start_direct_message' item.post.poster.id %}" class="action-btn">
+                    <span class="action-btn-icon">&#128172;</span>
+                    Message
+                </a>
+                {% endif %}
             </div>
 
             <!-- Comments Section -->
