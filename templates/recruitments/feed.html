@@ -399,16 +399,16 @@
 
             <!-- Header -->
             <div class="post-header">
-                <div class="post-avatar">
+                <a href="{% if item.post.poster_type == 'seeker' %}{% url 'seeker_post_detail' item.post.id %}{% else %}{% url 'job_detail' item.post.id %}{% endif %}" class="post-avatar" style="text-decoration: none;">
                     {% if item.poster_pic %}
                         <img src="{{ item.poster_pic }}" alt="Avatar">
                     {% else %}
                         {{ item.post.poster.name|first }}
                     {% endif %}
-                </div>
+                </a>
                 <div class="post-author-info">
                     <div class="post-author-name">
-                        {{ item.post.poster.name }}
+                        <a href="{% if item.post.poster_type == 'seeker' %}{% url 'seeker_post_detail' item.post.id %}{% else %}{% url 'job_detail' item.post.id %}{% endif %}">{{ item.post.poster.name }}</a>
                     </div>
                     <div class="post-author-headline">
                         {% if item.poster_designation %}{{ item.poster_designation }}{% endif %}
@@ -478,6 +478,12 @@
                     <span class="action-btn-icon">&#128065;</span>
                     View Details
                 </a>
+                {% if item.post.poster != user %}
+                <a href="{% url 'start_direct_message' item.post.poster.id %}" class="action-btn">
+                    <span class="action-btn-icon">&#128172;</span>
+                    Message
+                </a>
+                {% endif %}
             </div>
 
             <!-- Comments Section -->
