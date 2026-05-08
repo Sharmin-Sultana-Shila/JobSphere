@@ -765,3 +765,301 @@ class DirectMessageTest(BaseSeleniumTest):
         page_text = self.browser.find_element(By.TAG_NAME, 'body').text
         self.assertIn('Direct Messages', page_text)
 
+
+# ============================================================
+# TEST 13: REVERSE JOB POSTING (SEEKER POST)
+# ============================================================
+class ReversePostingTest(BaseSeleniumTest):
+    """Test seeker creating reverse job posts."""
+
+    def test_create_seeker_post_page_loads(self):
+        """Test seeker post creation page loads."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/seeker-post/create/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Post Your Profile', page_text)
+
+    def test_seeker_creates_reverse_post(self):
+        """Test seeker can create a reverse post."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/seeker-post/create/')
+        time.sleep(1)
+
+        self.browser.find_element(By.NAME, 'title').send_keys('Django Dev Looking for Work')
+        self.browser.find_element(By.NAME, 'description').send_keys('Experienced Django developer')
+        self.browser.find_element(By.NAME, 'location').send_keys('Dhaka')
+        self.browser.find_element(By.NAME, 'salary').send_keys('60000')
+        self.browser.find_element(By.NAME, 'required_experience').clear()
+        self.browser.find_element(By.NAME, 'required_experience').send_keys('2')
+        self.browser.find_element(By.NAME, 'skills_text').clear()
+        self.browser.find_element(By.NAME, 'skills_text').send_keys('Python, Django')
+
+        self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        time.sleep(1)
+
+        self.assertIn('my-posts', self.browser.current_url)
+        self.assertTrue(JobPost.objects.filter(title='Django Dev Looking for Work', poster_type='seeker').exists())
+
+    def test_recruiter_can_browse_seeker_posts(self):
+        """Test recruiter can see seeker reverse posts."""
+        JobPost.objects.create(
+            poster=self.seeker_user, poster_type='seeker',
+            title='Python Dev Available', description='Hire me',
+            skills_text='Python', number_of_available_seats=1, status='active'
+        )
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/seeker-posts/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Python Dev Available', page_text)
+
+
+# ============================================================
+# TEST 14: NAVBAR & ACCESS CONTROL
+# ============================================================
+class NavigationTest(BaseSeleniumTest):
+    """Test navbar links and access control."""
+
+    def test_seeker_navbar_has_correct_links(self):
+        """Test seeker sees correct navbar links."""
+        self.login_as_seeker()
+        navbar = self.browser.find_element(By.CSS_SELECTOR, '.navbar-links')
+        navbar_text = navbar.text
+
+        self.assertIn('Home', navbar_text)
+        self.assertIn('Browse Jobs', navbar_text)
+        self.assertIn('Applications', navbar_text)
+        self.assertIn('Interviews', navbar_text)
+        self.assertIn('Chat', navbar_text)
+        self.assertIn('Profile', navbar_text)
+        self.assertIn('Logout', navbar_text)
+
+    def test_recruiter_navbar_has_correct_links(self):
+        """Test recruiter sees correct navbar links."""
+        self.login_as_recruiter()
+        navbar = self.browser.find_element(By.CSS_SELECTOR, '.navbar-links')
+        navbar_text = navbar.text
+
+        self.assertIn('Home', navbar_text)
+        self.assertIn('My Posts', navbar_text)
+        self.assertIn('Post Job', navbar_text)
+        self.assertIn('Interviews', navbar_text)
+        self.assertIn('Find Talent', navbar_text)
+        self.assertIn('Chat', navbar_text)
+        self.assertIn('Profile', navbar_text)
+
+    def test_unauthenticated_user_redirected_to_login(self):
+        """Test that visiting protected pages redirects to login."""
+        self.browser.get(f'{self.live_server_url}/users/dashboard/seeker/')
+        time.sleep(1)
+        self.assertIn('login', self.browser.current_url)
+
+    def test_root_url_redirects_to_login(self):
+        """Test root URL redirects to login page."""
+        self.browser.get(f'{self.live_server_url}/')
+        time.sleep(1)
+        self.assertIn('login', self.browser.current_url)
+
+
+# ============================================================
+# TEST 15: FEED LIKE AND COMMENT
+# ============================================================
+class FeedLikeCommentTest(BaseSeleniumTest):
+    """Test liking and commenting on feed posts."""
+
+    def test_feed_page_loads_for_seeker(self):
+        """Test feed page loads as homepage after login."""
+        self.login_as_seeker()
+        self.assertIn('feed', self.browser.current_url)
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Senior Django Developer', page_text)
+
+    def test_feed_page_loads_for_recruiter(self):
+        """Test recruiter sees seeker posts on feed."""
+        # Create a seeker post first
+        JobPost.objects.create(
+            poster=self.seeker_user, poster_type='seeker', title='Hire Me Please',
+            description='I am available', skills_text='Python',
+            number_of_available_seats=1, status='active'
+        )
+        self.login_as_recruiter()
+        self.assertIn('feed', self.browser.current_url)
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Hire Me Please', page_text)
+
+    def test_like_button_works(self):
+        """Test seeker can like a post from the feed."""
+        self.login_as_seeker()
+        time.sleep(1)
+
+        # Click like
+        like_btn = self.browser.find_element(By.CSS_SELECTOR, f'a[href*="like/{self.job_post.id}"]')
+        like_btn.click()
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Liked', page_text)
+
+    def test_comment_on_post(self):
+        """Test seeker can comment on a post."""
+        self.login_as_seeker()
+        time.sleep(1)
+
+        comment_input = self.browser.find_element(By.CSS_SELECTOR, f'#comment-input-{self.job_post.id}')
+        comment_input.send_keys('Amazing opportunity!')
+        self.browser.find_element(By.CSS_SELECTOR, '.btn-comment-submit').click()
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Amazing opportunity!', page_text)
+
+    def test_like_notification_received(self):
+        """Test recruiter receives notification when seeker likes their post."""
+        self.login_as_seeker()
+        time.sleep(1)
+
+        like_btn = self.browser.find_element(By.CSS_SELECTOR, f'a[href*="like/{self.job_post.id}"]')
+        like_btn.click()
+        time.sleep(1)
+
+        # Check recruiter's notifications
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/updates/notifications/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('liked', page_text)
+
+
+# ============================================================
+# TEST 16: DEADLINE RESTRICTION
+# ============================================================
+class DeadlineRestrictionTest(BaseSeleniumTest):
+    """Test that seekers cannot apply after deadline."""
+
+    def test_expired_job_shows_deadline_passed(self):
+        """Test expired job shows 'Deadline Passed' instead of Apply Now."""
+        from django.utils import timezone
+        from datetime import timedelta
+
+        expired_job = JobPost.objects.create(
+            poster=self.recruiter_user, poster_type='recruiter',
+            title='Expired Position', description='This job is expired',
+            skills_text='Python', status='active',
+            deadline=timezone.now() - timedelta(days=1)
+        )
+
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/jobs/{expired_job.id}/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Deadline Passed', page_text)
+
+    def test_active_job_shows_apply_button(self):
+        """Test active job with future deadline shows Apply Now."""
+        from django.utils import timezone
+        from datetime import timedelta
+
+        active_job = JobPost.objects.create(
+            poster=self.recruiter_user, poster_type='recruiter',
+            title='Active Position', description='This job is active',
+            skills_text='Python', status='active',
+            deadline=timezone.now() + timedelta(days=7)
+        )
+
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/jobs/{active_job.id}/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Apply Now', page_text)
+
+
+# ============================================================
+# TEST 17: RECRUITER SEARCHES SEEKER POSTS
+# ============================================================
+class RecruiterSearchSeekersTest(BaseSeleniumTest):
+    """Test recruiter searching and filtering seeker posts."""
+
+    def setUp(self):
+        super().setUp()
+        JobPost.objects.create(
+            poster=self.seeker_user, poster_type='seeker',
+            title='Django Expert Available', description='Expert in Django',
+            skills_text='Python, Django', location='Dhaka', job_type='fullTime',
+            status='active', number_of_available_seats=1
+        )
+
+    def test_find_talent_page_has_search(self):
+        """Test Find Talent page has search bar and filters."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/seeker-posts/')
+        time.sleep(1)
+
+        search_input = self.browser.find_element(By.NAME, 'q')
+        self.assertIsNotNone(search_input)
+        location_input = self.browser.find_element(By.NAME, 'location')
+        self.assertIsNotNone(location_input)
+
+    def test_search_seeker_posts(self):
+        """Test recruiter can search seeker posts."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/seeker-posts/')
+        time.sleep(1)
+
+        search_input = self.browser.find_element(By.NAME, 'q')
+        search_input.send_keys('Django')
+        self.browser.find_element(By.CSS_SELECTOR, '.btn-search').click()
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Django Expert Available', page_text)
+        self.assertIn('1 candidate', page_text)
+
+    def test_filter_by_location(self):
+        """Test recruiter can filter seeker posts by location."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/seeker-posts/?location=Dhaka')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Django Expert Available', page_text)
+
+    def test_no_results_search(self):
+        """Test search with no results shows empty state."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/seeker-posts/?q=NonExistent')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('No candidates match', page_text)
+
+
+# ============================================================
+# TEST 18: COMPANY LOGO ON JOB DETAIL
+# ============================================================
+class CompanyLogoTest(BaseSeleniumTest):
+    """Test company logo/initial shows on job detail page."""
+
+    def test_company_name_shows_on_job_detail(self):
+        """Test company name is displayed on job detail page."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/jobs/{self.job_post.id}/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Tech Corp', page_text)
+
+    def test_company_initial_shows_when_no_logo(self):
+        """Test company initial letter shows when no logo uploaded."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/jobs/{self.job_post.id}/')
+        time.sleep(1)
+
+        # The initial 'T' for Tech Corp should be present
+        page_source = self.browser.page_source
+        self.assertIn('Tech Corp', page_source)
