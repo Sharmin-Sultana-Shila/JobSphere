@@ -168,11 +168,15 @@ def job_detail_view(request, post_id):
             pass
 
     # Get the recruiter's company name
+    # Get the recruiter's company info
     company_name = ''
+    company_logo = None
     try:
         recruiter = Recruiter.objects.get(user=job_post.poster)
         if recruiter.company:
             company_name = recruiter.company.name
+            if recruiter.company.logo:
+                company_logo = recruiter.company.logo.url
     except Recruiter.DoesNotExist:
         pass
 
@@ -180,6 +184,7 @@ def job_detail_view(request, post_id):
         'job_post': job_post,
         'already_applied': already_applied,
         'company_name': company_name,
+        'company_logo': company_logo,
         'ats_preview': ats_preview,
     })
 
@@ -229,13 +234,49 @@ def my_seeker_posts_view(request):
 def seeker_posts_browser_view(request):
     """
     Recruiter browses all active seeker posts.
-    These are reverse posts where seekers showcase themselves.
+    Supports search and filters like the job listing page.
     """
     if not request.user.is_authenticated or request.user.user_type != 'recruiter':
         return redirect('login')
 
+    from django.db.models import Q
+
     seeker_posts = JobPost.objects.filter(status='active', poster_type='seeker')
-    return render(request, 'recruitments/seeker_posts_browser.html', {'seeker_posts': seeker_posts})
+
+    # Get search and filter values
+    search_query = request.GET.get('q', '').strip()
+    location_filter = request.GET.get('location', '').strip()
+    job_type_filter = request.GET.get('job_type', '').strip()
+    skills_filter = request.GET.get('skills', '').strip()
+
+    # Apply search
+    if search_query:
+        seeker_posts = seeker_posts.filter(
+            Q(title__icontains=search_query) | Q(description__icontains=search_query)
+        )
+
+    # Apply location filter
+    if location_filter:
+        seeker_posts = seeker_posts.filter(location__icontains=location_filter)
+
+    # Apply job type filter
+    if job_type_filter:
+        seeker_posts = seeker_posts.filter(job_type=job_type_filter)
+
+    # Apply skills filter
+    if skills_filter:
+        seeker_posts = seeker_posts.filter(skills_text__icontains=skills_filter)
+
+    job_type_choices = JobPost.JOB_TYPE_CHOICES
+
+    return render(request, 'recruitments/seeker_posts_browser.html', {
+        'seeker_posts': seeker_posts,
+        'search_query': search_query,
+        'location_filter': location_filter,
+        'job_type_filter': job_type_filter,
+        'skills_filter': skills_filter,
+        'job_type_choices': job_type_choices,
+    })
 
 
 def seeker_post_detail_view(request, post_id):

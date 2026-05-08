@@ -20,6 +20,98 @@
     margin-bottom: 20px;
 }
 
+/* ===== SEARCH & FILTER ===== */
+.search-filter-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.search-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 12px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fafafa;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #e94560;
+    background: white;
+}
+
+.btn-search {
+    background: #e94560;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-search:hover {
+    background: #c81e45;
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.filter-input {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #fafafa;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #e94560;
+    background: white;
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.results-count {
+    font-size: 13px;
+    color: #888;
+}
+
+.btn-clear {
+    background: none;
+    color: #888;
+    font-size: 13px;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.btn-clear:hover {
+    background: #f0f2f5;
+    color: #333;
+}
+
+/* ===== SEEKER CARDS ===== */
 .seeker-card {
     background: white;
     border-radius: 12px;
@@ -79,15 +171,27 @@
     color: #856404;
 }
 
+.tag-salary {
+    background: #d4edda;
+    color: #155724;
+}
+
+.tag-skills {
+    background: #f0f2f5;
+    color: #555;
+}
+
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: #888;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .empty-state h3 {
-    margin-bottom: 10px;
     color: #555;
+    margin-bottom: 10px;
 }
 {% endblock %}
 
@@ -98,6 +202,36 @@
         <p>Discover talented job seekers who are actively looking for opportunities</p>
     </div>
 
+    <!-- SEARCH & FILTER -->
+    <div class="search-filter-card">
+        <form method="GET" action="{% url 'seeker_posts_browser' %}">
+
+            <div class="search-row">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search by title or description..." class="search-input">
+                <button type="submit" class="btn-search">Search</button>
+            </div>
+
+            <div class="filter-row">
+                <input type="text" name="location" value="{{ location_filter }}" placeholder="Filter by location" class="filter-input">
+                <input type="text" name="skills" value="{{ skills_filter }}" placeholder="Filter by skills" class="filter-input">
+                <select name="job_type" class="filter-input">
+                    <option value="">All Job Types</option>
+                    {% for value, label in job_type_choices %}
+                        <option value="{{ value }}" {% if job_type_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <span class="results-count">{{ seeker_posts|length }} candidate{{ seeker_posts|length|pluralize }} found</span>
+                {% if search_query or location_filter or job_type_filter or skills_filter %}
+                    <a href="{% url 'seeker_posts_browser' %}" class="btn-clear">Clear all filters</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- SEEKER POSTS -->
     {% if seeker_posts %}
         {% for post in seeker_posts %}
         <a href="{% url 'seeker_post_detail' post.id %}" class="seeker-card">
@@ -110,15 +244,18 @@
                     <span class="tag tag-exp">{{ post.required_experience }} yrs experience</span>
                 {% endif %}
                 {% if post.salary %}
-                    <span class="tag" style="background: #d4edda; color: #155724;">Expected: BDT {{ post.salary }}</span>
+                    <span class="tag tag-salary">Expected: BDT {{ post.salary }}</span>
+                {% endif %}
+                {% if post.skills_text %}
+                    <span class="tag tag-skills">{{ post.skills_text|truncatechars:40 }}</span>
                 {% endif %}
             </div>
         </a>
         {% endfor %}
     {% else %}
         <div class="empty-state">
-            <h3>No candidate posts yet</h3>
-            <p>Check back later for job seekers showcasing their profiles.</p>
+            <h3>No candidates match your search</h3>
+            <p>Try different keywords or clear the filters.</p>
         </div>
     {% endif %}
 </div>
