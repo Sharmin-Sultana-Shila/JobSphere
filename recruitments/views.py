@@ -168,11 +168,15 @@ def job_detail_view(request, post_id):
             pass
 
     # Get the recruiter's company name
+    # Get the recruiter's company info
     company_name = ''
+    company_logo = None
     try:
         recruiter = Recruiter.objects.get(user=job_post.poster)
         if recruiter.company:
             company_name = recruiter.company.name
+            if recruiter.company.logo:
+                company_logo = recruiter.company.logo.url
     except Recruiter.DoesNotExist:
         pass
 
@@ -180,6 +184,7 @@ def job_detail_view(request, post_id):
         'job_post': job_post,
         'already_applied': already_applied,
         'company_name': company_name,
+        'company_logo': company_logo,
         'ats_preview': ats_preview,
     })
 
