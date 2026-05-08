@@ -290,6 +290,8 @@
                 {% if job_post.status == 'active' %}
                     {% if already_applied %}
                         <span class="btn btn-applied">Already Applied &#10003;</span>
+                    {% elif job_post.deadline and job_post.deadline < now %}
+                        <span class="btn btn-applied" style="background: #f8d7da; color: #721c24;">Deadline Passed</span>
                     {% else %}
                         <a href="{% url 'apply_for_job' job_post.id %}" class="btn btn-apply">Apply Now</a>
                     {% endif %}
