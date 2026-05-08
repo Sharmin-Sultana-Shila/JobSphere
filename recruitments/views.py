@@ -180,12 +180,14 @@ def job_detail_view(request, post_id):
     except Recruiter.DoesNotExist:
         pass
 
+    from django.utils import timezone
     return render(request, 'recruitments/job_detail.html', {
         'job_post': job_post,
         'already_applied': already_applied,
         'company_name': company_name,
         'company_logo': company_logo,
         'ats_preview': ats_preview,
+        'now': timezone.now(),
     })
 
 def create_seeker_post_view(request):
