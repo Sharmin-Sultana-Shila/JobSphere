@@ -389,3 +389,216 @@ class JobPostManagementTest(BaseSeleniumTest):
         self.job_post.refresh_from_db()
         self.assertEqual(self.job_post.status, 'active')
 
+
+
+# ============================================================
+# TEST 6: JOB BROWSING & SEARCH (SEEKER)
+# ============================================================
+class JobBrowsingTest(BaseSeleniumTest):
+    """Test job listing, search, and detail pages."""
+
+    def test_job_list_page_shows_active_jobs(self):
+        """Test browse jobs page shows active posts."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/jobs/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Senior Django Developer', page_text)
+
+    def test_search_jobs_by_keyword(self):
+        """Test searching jobs by title keyword."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/jobs/')
+        time.sleep(1)
+
+        search_input = self.browser.find_element(By.NAME, 'q')
+        search_input.send_keys('Django')
+        self.browser.find_element(By.CSS_SELECTOR, '.btn-search').click()
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Senior Django Developer', page_text)
+        self.assertIn('1 job', page_text)
+
+    def test_search_no_results(self):
+        """Test search with no matching results."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/jobs/?q=NonExistentJob')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('No jobs match', page_text)
+
+    def test_job_detail_page_shows_info(self):
+        """Test job detail page displays all info."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/jobs/{self.job_post.id}/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Senior Django Developer', page_text)
+        self.assertIn('Dhaka', page_text)
+        self.assertIn('80000', page_text)
+        self.assertIn('Python, Django, SQL', page_text)
+
+    def test_job_detail_shows_ats_preview(self):
+        """Test job detail shows ATS score preview for seeker."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/jobs/{self.job_post.id}/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('YOUR ATS MATCH SCORE', page_text)
+
+
+# ============================================================
+# TEST 7: APPLICATION FLOW
+# ============================================================
+class ApplicationFlowTest(BaseSeleniumTest):
+    """Test the complete application flow — apply, view, withdraw."""
+
+    def test_seeker_applies_for_job(self):
+        """Test seeker can apply for a job."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/apply/{self.job_post.id}/')
+        time.sleep(1)
+
+        # Should redirect to my applications
+        self.assertIn('my-applications', self.browser.current_url)
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Senior Django Developer', page_text)
+        self.assertIn('Applied', page_text)
+
+    def test_my_applications_page_shows_applications(self):
+        """Test my applications page displays applied jobs."""
+        Application.objects.create(
+            job_post=self.job_post, seeker=self.seeker, status='applied', ats_score=75
+        )
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/my-applications/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Senior Django Developer', page_text)
+        self.assertIn('ATS: 75', page_text)
+
+    def test_seeker_withdraws_application(self):
+        """Test seeker can withdraw an applied application."""
+        app = Application.objects.create(
+            job_post=self.job_post, seeker=self.seeker, status='applied', ats_score=75
+        )
+        self.job_post.application_count = 1
+        self.job_post.save()
+
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/withdraw/{app.id}/')
+        time.sleep(1)
+
+        self.assertFalse(Application.objects.filter(id=app.id).exists())
+
+    def test_already_applied_shows_badge(self):
+        """Test that job detail shows 'Already Applied' after applying."""
+        Application.objects.create(
+            job_post=self.job_post, seeker=self.seeker, status='applied', ats_score=75
+        )
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/jobs/{self.job_post.id}/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Already Applied', page_text)
+
+
+# ============================================================
+# TEST 8: RECRUITER REVIEWS APPLICANTS
+# ============================================================
+class RecruiterReviewTest(BaseSeleniumTest):
+    """Test recruiter reviewing and updating applicant status."""
+
+    def test_applicants_list_shows_candidates(self):
+        """Test applicants list shows applied candidates."""
+        Application.objects.create(
+            job_post=self.job_post, seeker=self.seeker, status='applied', ats_score=77.5
+        )
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/applicants/{self.job_post.id}/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Test Seeker', page_text)
+        self.assertIn('77.5', page_text)
+
+    def test_applicant_detail_shows_profile(self):
+        """Test applicant detail page shows seeker profile."""
+        app = Application.objects.create(
+            job_post=self.job_post, seeker=self.seeker, status='applied', ats_score=77.5
+        )
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/applicant/{app.id}/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Test Seeker', page_text)
+        self.assertIn('BSc in CSE', page_text)
+        self.assertIn('77.5', page_text)
+
+    def test_update_application_status(self):
+        """Test recruiter can update status to shortlisted."""
+        app = Application.objects.create(
+            job_post=self.job_post, seeker=self.seeker, status='applied', ats_score=77.5
+        )
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/applicant/{app.id}/')
+        time.sleep(1)
+
+        # Select shortlisted from dropdown
+        status_select = Select(self.browser.find_element(By.NAME, 'status'))
+        status_select.select_by_value('shortlisted')
+
+        # Click update button
+        self.browser.find_element(By.CSS_SELECTOR, '.btn-update').click()
+        time.sleep(1)
+
+        app.refresh_from_db()
+        self.assertEqual(app.status, 'shortlisted')
+
+
+# ============================================================
+# TEST 9: INTERVIEW SCHEDULING
+# ============================================================
+class InterviewTest(BaseSeleniumTest):
+    """Test interview scheduling and feedback."""
+
+    def test_schedule_interview_page_loads(self):
+        """Test schedule interview page loads for shortlisted applicant."""
+        app = Application.objects.create(
+            job_post=self.job_post, seeker=self.seeker, status='shortlisted', ats_score=77
+        )
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/interview/schedule/{app.id}/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Schedule Interview', page_text)
+        self.assertIn('Test Seeker', page_text)
+
+    def test_interview_list_page_loads(self):
+        """Test interview list page loads for recruiter."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/interview/list/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Interviews', page_text)
+
+    def test_seeker_interviews_page_loads(self):
+        """Test seeker can see their interviews page."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/recruitments/my-interviews/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('My Interviews', page_text)
+
+
