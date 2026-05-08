@@ -602,3 +602,166 @@ class InterviewTest(BaseSeleniumTest):
         self.assertIn('My Interviews', page_text)
 
 
+# ============================================================
+# TEST 10: NOTIFICATIONS
+# ============================================================
+class NotificationTest(BaseSeleniumTest):
+    """Test notification pages."""
+
+    def test_notifications_page_loads(self):
+        """Test notifications page loads for logged-in user."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/updates/notifications/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Notifications', page_text)
+
+    def test_notifications_page_shows_empty_state(self):
+        """Test empty state when no notifications exist."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/updates/notifications/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('No notifications yet', page_text)
+
+    def test_notification_appears_after_status_change(self):
+        """Test notification is created when recruiter changes application status."""
+        app = Application.objects.create(
+            job_post=self.job_post, seeker=self.seeker, status='applied', ats_score=75
+        )
+
+        # Recruiter updates status
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/applicant/{app.id}/')
+        time.sleep(1)
+
+        status_select = Select(self.browser.find_element(By.NAME, 'status'))
+        status_select.select_by_value('shortlisted')
+        self.browser.find_element(By.CSS_SELECTOR, '.btn-update').click()
+        time.sleep(1)
+
+        # Seeker checks notifications
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/updates/notifications/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Shortlisted', page_text)
+
+
+# ============================================================
+# TEST 11: CHAT ROOMS
+# ============================================================
+class ChatRoomTest(BaseSeleniumTest):
+    """Test chat room functionality."""
+
+    def test_chat_rooms_list_page_loads(self):
+        """Test chat rooms page shows industry rooms."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/updates/chat/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Software Engineering', page_text)
+
+    def test_join_chat_room(self):
+        """Test user can join a chat room."""
+        self.login_as_seeker()
+        room = ChatRoom.objects.get(name='Software Engineering')
+        self.browser.get(f'{self.live_server_url}/updates/chat/join/{room.id}/')
+        time.sleep(1)
+
+        room.refresh_from_db()
+        self.assertEqual(room.member_count, 1)
+        self.assertTrue(ChatRoomMember.objects.filter(chat_room=room, user=self.seeker_user).exists())
+
+    def test_leave_chat_room(self):
+        """Test user can leave a chat room."""
+        room = ChatRoom.objects.get(name='Software Engineering')
+        ChatRoomMember.objects.create(chat_room=room, user=self.seeker_user)
+        room.member_count = 1
+        room.save()
+
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/updates/chat/leave/{room.id}/')
+        time.sleep(1)
+
+        room.refresh_from_db()
+        self.assertEqual(room.member_count, 0)
+
+    def test_create_custom_room(self):
+        """Test user can create a custom chat room."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/updates/chat/create/')
+        time.sleep(1)
+
+        self.browser.find_element(By.NAME, 'name').send_keys('Django Fans')
+        self.browser.find_element(By.NAME, 'description').send_keys('A room for Django lovers')
+        self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        time.sleep(1)
+
+        self.assertTrue(ChatRoom.objects.filter(name='Django Fans').exists())
+
+    def test_chat_room_window_loads(self):
+        """Test chat room window opens for members."""
+        room = ChatRoom.objects.get(name='Software Engineering')
+        ChatRoomMember.objects.create(chat_room=room, user=self.seeker_user)
+        room.member_count = 1
+        room.save()
+
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/updates/chat/room/{room.id}/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Software Engineering', page_text)
+        self.assertIn('Test Seeker', page_text)
+
+    def test_send_message_in_chat(self):
+        """Test user can send a message in a chat room."""
+        room = ChatRoom.objects.get(name='Software Engineering')
+        ChatRoomMember.objects.create(chat_room=room, user=self.seeker_user)
+        room.member_count = 1
+        room.save()
+
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/updates/chat/room/{room.id}/')
+        time.sleep(1)
+
+        msg_input = self.browser.find_element(By.NAME, 'content')
+        msg_input.send_keys('Hello from Selenium!')
+        self.browser.find_element(By.CSS_SELECTOR, '.btn-send').click()
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Hello from Selenium!', page_text)
+
+
+# ============================================================
+# TEST 12: DIRECT MESSAGING
+# ============================================================
+class DirectMessageTest(BaseSeleniumTest):
+    """Test direct messaging between users."""
+
+    def test_start_direct_message(self):
+        """Test recruiter can start DM with seeker."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/updates/chat/dm/{self.seeker_user.id}/')
+        time.sleep(1)
+
+        # Should be in a chat room
+        self.assertIn('chat/room', self.browser.current_url)
+        dm_room = ChatRoom.objects.filter(room_type='direct').first()
+        self.assertIsNotNone(dm_room)
+
+    def test_direct_messages_list_page(self):
+        """Test direct messages list page loads."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/updates/chat/my-dms/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Direct Messages', page_text)
+
