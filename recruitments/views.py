@@ -312,6 +312,12 @@ def apply_for_job_view(request, post_id):
 
     job_post = get_object_or_404(JobPost, id=post_id, status='active', poster_type='recruiter')
 
+    # Check if deadline has passed
+    from django.utils import timezone
+    if job_post.deadline and job_post.deadline < timezone.now():
+        messages.error(request, 'The application deadline for this job has passed.')
+        return redirect('job_detail', post_id=post_id)
+    
     # Get the seeker profile
     try:
         seeker = JobSeeker.objects.get(user=request.user)
