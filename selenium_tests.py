@@ -248,3 +248,144 @@ class LoginLogoutTest(BaseSeleniumTest):
         self.browser.find_element(By.CSS_SELECTOR, '.btn-logout').click()
         time.sleep(1)
         self.assertIn('login', self.browser.current_url)
+
+
+# ============================================================
+# TEST 3: SEEKER PROFILE
+# ============================================================
+class SeekerProfileTest(BaseSeleniumTest):
+    """Test seeker profile view and edit."""
+
+    def test_seeker_profile_page_shows_data(self):
+        """Test profile page displays seeker info."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/users/profile/seeker/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Test Seeker', page_text)
+        self.assertIn('seeker@test.com', page_text)
+        self.assertIn('3.75', page_text)
+        self.assertIn('Dhaka', page_text)
+
+    def test_seeker_profile_edit_page_loads(self):
+        """Test profile edit page loads with pre-filled data."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/users/profile/seeker/edit/')
+        time.sleep(1)
+
+        bio_field = self.browser.find_element(By.NAME, 'bio')
+        self.assertEqual(bio_field.get_attribute('value'), 'I am a developer')
+
+    def test_seeker_can_update_profile(self):
+        """Test seeker can edit and save profile changes."""
+        self.login_as_seeker()
+        self.browser.get(f'{self.live_server_url}/users/profile/seeker/edit/')
+        time.sleep(1)
+
+        # Update bio
+        bio_field = self.browser.find_element(By.NAME, 'bio')
+        bio_field.clear()
+        bio_field.send_keys('Updated bio from Selenium')
+
+        # Submit
+        self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        time.sleep(1)
+
+        # Check updated value on profile page
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Updated bio from Selenium', page_text)
+
+
+# ============================================================
+# TEST 4: RECRUITER PROFILE
+# ============================================================
+class RecruiterProfileTest(BaseSeleniumTest):
+    """Test recruiter profile view and edit."""
+
+    def test_recruiter_profile_page_shows_data(self):
+        """Test profile page displays recruiter and company info."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/users/profile/recruiter/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Test Recruiter', page_text)
+        self.assertIn('Tech Corp', page_text)
+        self.assertIn('HR Manager', page_text)
+
+    def test_recruiter_can_update_profile(self):
+        """Test recruiter can edit and save profile changes."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/users/profile/recruiter/edit/')
+        time.sleep(1)
+
+        # Update designation
+        desig_field = self.browser.find_element(By.NAME, 'designation')
+        desig_field.clear()
+        desig_field.send_keys('Senior HR Manager')
+
+        # Submit
+        self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Senior HR Manager', page_text)
+
+
+# ============================================================
+# TEST 5: JOB POST MANAGEMENT (RECRUITER)
+# ============================================================
+class JobPostManagementTest(BaseSeleniumTest):
+    """Test job post creation, editing, and status toggle."""
+
+    def test_create_job_post(self):
+        """Test recruiter can create a job post."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/create/')
+        time.sleep(1)
+
+        self.browser.find_element(By.NAME, 'title').send_keys('React Developer')
+        self.browser.find_element(By.NAME, 'description').send_keys('Need a React expert')
+        self.browser.find_element(By.NAME, 'location').send_keys('Mirpur, Dhaka')
+        Select(self.browser.find_element(By.NAME, 'job_type')).select_by_value('fullTime')
+        self.browser.find_element(By.NAME, 'salary').send_keys('70000')
+        self.browser.find_element(By.NAME, 'number_of_available_seats').clear()
+        self.browser.find_element(By.NAME, 'number_of_available_seats').send_keys('2')
+        self.browser.find_element(By.NAME, 'required_experience').clear()
+        self.browser.find_element(By.NAME, 'required_experience').send_keys('1')
+        self.browser.find_element(By.NAME, 'skills_text').send_keys('React, JavaScript, CSS')
+
+        self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        time.sleep(1)
+
+        # Should redirect to my posts
+        self.assertIn('my-posts', self.browser.current_url)
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('React Developer', page_text)
+
+    def test_my_job_posts_page_shows_posts(self):
+        """Test my job posts page shows existing posts."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/my-posts/')
+        time.sleep(1)
+
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Senior Django Developer', page_text)
+
+    def test_close_and_reopen_job_post(self):
+        """Test recruiter can close and reopen a post."""
+        self.login_as_recruiter()
+        self.browser.get(f'{self.live_server_url}/recruitments/toggle/{self.job_post.id}/')
+        time.sleep(1)
+
+        self.job_post.refresh_from_db()
+        self.assertEqual(self.job_post.status, 'closed')
+
+        # Reopen
+        self.browser.get(f'{self.live_server_url}/recruitments/toggle/{self.job_post.id}/')
+        time.sleep(1)
+
+        self.job_post.refresh_from_db()
+        self.assertEqual(self.job_post.status, 'active')
+
