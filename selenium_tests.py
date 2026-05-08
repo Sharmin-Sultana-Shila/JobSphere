@@ -122,3 +122,129 @@ class BaseSeleniumTest(LiveServerTestCase):
         self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
         time.sleep(1)
 
+# ============================================================
+# TEST 1: REGISTRATION
+# ============================================================
+class RegistrationTest(BaseSeleniumTest):
+    """Test user registration flow in the browser."""
+
+    def test_register_page_loads(self):
+        """Test that the register page opens successfully."""
+        self.browser.get(f'{self.live_server_url}/users/register/')
+        heading = self.browser.find_element(By.TAG_NAME, 'h2')
+        self.assertEqual(heading.text, 'Create Account')
+
+    def test_register_seeker_successfully(self):
+        """Test complete seeker registration flow."""
+        self.browser.get(f'{self.live_server_url}/users/register/')
+
+        # Select seeker role
+        seeker_radio = self.browser.find_element(By.ID, 'role-seeker')
+        seeker_radio.click()
+
+        # Fill form
+        self.browser.find_element(By.NAME, 'name').send_keys('New Seeker')
+        self.browser.find_element(By.NAME, 'email').send_keys('newseeker@test.com')
+        self.browser.find_element(By.NAME, 'password').send_keys('newpass123')
+        self.browser.find_element(By.NAME, 'confirm_password').send_keys('newpass123')
+
+        # Submit
+        self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        time.sleep(1)
+
+        # Should redirect to seeker onboarding
+        self.assertIn('onboarding/seeker', self.browser.current_url)
+
+    def test_register_recruiter_successfully(self):
+        """Test complete recruiter registration flow."""
+        self.browser.get(f'{self.live_server_url}/users/register/')
+
+        # Select recruiter role
+        recruiter_radio = self.browser.find_element(By.ID, 'role-recruiter')
+        recruiter_radio.click()
+
+        # Fill form
+        self.browser.find_element(By.NAME, 'name').send_keys('New Recruiter')
+        self.browser.find_element(By.NAME, 'email').send_keys('newrecruiter@test.com')
+        self.browser.find_element(By.NAME, 'password').send_keys('newpass123')
+        self.browser.find_element(By.NAME, 'confirm_password').send_keys('newpass123')
+
+        # Submit
+        self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        time.sleep(1)
+
+        # Should redirect to recruiter onboarding
+        self.assertIn('onboarding/recruiter', self.browser.current_url)
+
+    def test_register_password_mismatch_shows_error(self):
+        """Test that mismatched passwords show error on register page."""
+        self.browser.get(f'{self.live_server_url}/users/register/')
+
+        self.browser.find_element(By.NAME, 'name').send_keys('Bad User')
+        self.browser.find_element(By.NAME, 'email').send_keys('bad@test.com')
+        self.browser.find_element(By.NAME, 'password').send_keys('pass123')
+        self.browser.find_element(By.NAME, 'confirm_password').send_keys('different456')
+
+        self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        time.sleep(1)
+
+        # Should stay on register page with error
+        self.assertIn('register', self.browser.current_url)
+        error_msg = self.browser.find_element(By.CSS_SELECTOR, '.messages .error')
+        self.assertIn('Passwords do not match', error_msg.text)
+
+    def test_register_duplicate_email_shows_error(self):
+        """Test that registering with existing email shows error."""
+        self.browser.get(f'{self.live_server_url}/users/register/')
+
+        self.browser.find_element(By.NAME, 'name').send_keys('Duplicate')
+        self.browser.find_element(By.NAME, 'email').send_keys('seeker@test.com')
+        self.browser.find_element(By.NAME, 'password').send_keys('testpass123')
+        self.browser.find_element(By.NAME, 'confirm_password').send_keys('testpass123')
+
+        self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        time.sleep(1)
+
+        # Should stay on register page
+        self.assertIn('register', self.browser.current_url)
+
+
+# ============================================================
+# TEST 2: LOGIN & LOGOUT
+# ============================================================
+class LoginLogoutTest(BaseSeleniumTest):
+    """Test login and logout flow."""
+
+    def test_login_page_loads(self):
+        """Test that login page opens successfully."""
+        self.browser.get(f'{self.live_server_url}/users/login/')
+        heading = self.browser.find_element(By.TAG_NAME, 'h2')
+        self.assertEqual(heading.text, 'Welcome Back')
+
+    def test_seeker_login_redirects_to_feed(self):
+        """Test seeker login goes to feed page."""
+        self.login_as_seeker()
+        self.assertIn('feed', self.browser.current_url)
+
+    def test_recruiter_login_redirects_to_feed(self):
+        """Test recruiter login goes to feed page."""
+        self.login_as_recruiter()
+        self.assertIn('feed', self.browser.current_url)
+
+    def test_invalid_login_shows_error(self):
+        """Test wrong password shows error."""
+        self.browser.get(f'{self.live_server_url}/users/login/')
+        self.browser.find_element(By.NAME, 'email').send_keys('seeker@test.com')
+        self.browser.find_element(By.NAME, 'password').send_keys('wrongpassword')
+        self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        time.sleep(1)
+
+        # Should stay on login page
+        self.assertIn('login', self.browser.current_url)
+
+    def test_logout_redirects_to_login(self):
+        """Test logout sends user back to login page."""
+        self.login_as_seeker()
+        self.browser.find_element(By.CSS_SELECTOR, '.btn-logout').click()
+        time.sleep(1)
+        self.assertIn('login', self.browser.current_url)
